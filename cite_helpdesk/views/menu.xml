@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Root -->
+    <menuitem id="menu_cite_root" name="CITE Helpdesk"
+              web_icon="cite_helpdesk,static/description/icon.png"
+              sequence="25"
+              groups="helpdesk.group_helpdesk_user,cite_helpdesk.group_heidi_approver"/>
+
+    <!-- Overview (dashboard realtime — halaman pertama saat membuka app) -->
+    <record id="action_cite_dashboard" model="ir.actions.client">
+        <field name="name">Overview</field>
+        <field name="tag">cite_helpdesk.dashboard</field>
+    </record>
+    <menuitem id="menu_cite_overview" name="Overview" parent="menu_cite_root"
+              action="action_cite_dashboard" sequence="5"/>
+
+    <!-- Tickets -->
+    <menuitem id="menu_cite_tickets" name="Tickets" parent="menu_cite_root"
+              sequence="10"/>
+    <menuitem id="menu_cite_tickets_all" name="All Tickets"
+              parent="menu_cite_tickets" action="action_cite_tickets"
+              sequence="10"/>
+    <menuitem id="menu_cite_approval_waiting" name="Approval Waiting List"
+              parent="menu_cite_tickets" action="action_cite_approval_waiting"
+              sequence="20"/>
+    <menuitem id="menu_cite_sla_breached" name="SLA Breached"
+              parent="menu_cite_tickets" action="action_cite_sla_breached"
+              sequence="30"/>
+
+    <!-- Assets -->
+    <menuitem id="menu_cite_assets" name="IT Assets" parent="menu_cite_root"
+              action="action_cite_assets" sequence="20"
+              groups="cite_helpdesk.group_it_support"/>
+
+    <!-- Master Data (IT Administrator ke atas) -->
+    <menuitem id="menu_cite_master" name="Master Data" parent="menu_cite_root"
+              sequence="80" groups="cite_helpdesk.group_it_administrator"/>
+    <menuitem id="menu_cite_sites" name="Sites" parent="menu_cite_master"
+              action="action_cite_sites" sequence="10"/>
+    <menuitem id="menu_cite_categories" name="Categories"
+              parent="menu_cite_master" action="action_cite_categories"
+              sequence="20"/>
+    <menuitem id="menu_cite_subcategories" name="Sub Categories"
+              parent="menu_cite_master" action="action_cite_subcategories"
+              sequence="30"/>
+    <record id="action_cite_sla_policies" model="ir.actions.act_window">
+        <field name="name">SLA Policies</field>
+        <field name="res_model">helpdesk.sla</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem id="menu_cite_sla" name="SLA Policies" parent="menu_cite_master"
+              action="action_cite_sla_policies" sequence="40"/>
+
+</odoo>

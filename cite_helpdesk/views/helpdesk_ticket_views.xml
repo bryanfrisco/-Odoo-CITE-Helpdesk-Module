@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ====================== FORM (Bab 8.1) ====================== -->
+    <record id="view_cite_ticket_form" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.form.cite</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <form string="CITE Ticket">
+                <field name="cite_stage_code" invisible="1"/>
+                <field name="stage_is_locked" invisible="1"/>
+                <field name="require_approval" invisible="1"/>
+                <field name="sla_fail" invisible="1"/>
+                <header>
+                    <button name="action_admin_approve" string="✔ Approve (Admin)"
+                            type="object" class="btn-success"
+                            groups="cite_helpdesk.group_it_administrator"
+                            invisible="not id or admin_approval_status != 'pending'"/>
+                    <button name="action_admin_reject" string="✘ Reject (Admin)"
+                            type="object" class="btn-danger"
+                            groups="cite_helpdesk.group_it_administrator"
+                            invisible="not id or admin_approval_status != 'pending'"/>
+                    <button name="action_heidi_approve" string="✔ Approve (Heidi)"
+                            type="object" class="btn-success"
+                            groups="cite_helpdesk.group_heidi_approver"
+                            invisible="not id or heidi_approval_status != 'pending'"/>
+                    <button name="action_heidi_reject" string="✘ Reject (Heidi)"
+                            type="object" class="btn-danger"
+                            groups="cite_helpdesk.group_heidi_approver"
+                            invisible="not id or heidi_approval_status != 'pending'"/>
+                    <button name="action_start_progress" string="▶ Start Progress"
+                            type="object" class="btn-primary"
+                            invisible="not id or cite_stage_code not in ('open', 'assigned', 'waiting_user')"/>
+                    <button name="action_waiting_user" string="⏸ Waiting User"
+                            type="object"
+                            invisible="not id or cite_stage_code != 'in_progress'"/>
+                    <button name="action_resolve" string="✔ Resolve" type="object"
+                            class="btn-primary"
+                            invisible="not id or cite_stage_code not in ('in_progress', 'waiting_user')"/>
+                    <button name="action_close" string="Close" type="object"
+                            invisible="not id or cite_stage_code != 'resolved'"/>
+                    <button name="action_reopen" string="Reopen" type="object"
+                            groups="helpdesk.group_helpdesk_user"
+                            invisible="not id or cite_stage_code not in ('resolved', 'closed')"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="not id or cite_stage_code in ('closed', 'cancelled', 'rejected')"/>
+                    <field name="stage_id" widget="statusbar"
+                           options="{'fold_field': 'fold'}" readonly="1"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="REJECTED" bg_color="bg-danger"
+                            invisible="approval_status != 'rejected'"/>
+                    <widget name="web_ribbon" title="SLA BREACHED" bg_color="bg-danger"
+                            invisible="not sla_fail"/>
+                    <div class="oe_title">
+                        <h1><field name="ticket_ref" readonly="1" class="text-primary"/></h1>
+                        <h2><field name="name" placeholder="Subject..."
+                                   readonly="stage_is_locked"/></h2>
+                    </div>
+                    <group>
+                        <group string="Requester &amp; Lokasi">
+                            <field name="partner_id" string="Requester"
+                                   readonly="stage_is_locked"/>
+                            <field name="department_id" readonly="stage_is_locked"/>
+                            <field name="company_id" options="{'no_create': True}"
+                                   readonly="stage_is_locked"/>
+                            <field name="site_id" options="{'no_create': True}"
+                                   readonly="stage_is_locked"/>
+                        </group>
+                        <group string="Klasifikasi">
+                            <field name="ticket_type_id" readonly="stage_is_locked"/>
+                            <field name="cite_category_id" readonly="stage_is_locked"/>
+                            <field name="cite_subcategory_id" readonly="stage_is_locked"/>
+                        </group>
+                        <group string="Prioritas &amp; SLA">
+                            <field name="impact" readonly="stage_is_locked"/>
+                            <field name="urgency" readonly="stage_is_locked"/>
+                            <field name="priority" widget="priority" readonly="1"/>
+                            <field name="time_in_stage"/>
+                            <field name="sla_deadline" widget="remaining_days"/>
+                            <field name="first_response_date"/>
+                        </group>
+                        <group string="Penugasan">
+                            <field name="team_id" readonly="stage_is_locked"/>
+                            <field name="user_id" widget="many2one_avatar_user"
+                                   readonly="stage_is_locked"/>
+                            <field name="tag_ids" widget="many2many_tags"
+                                   options="{'color_field': 'color'}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" readonly="stage_is_locked"/>
+                        </page>
+                        <page string="Approval" name="approval"
+                              invisible="approval_status == 'not_required'">
+                            <group>
+                                <group string="Level 1 — IT Administrator">
+                                    <field name="admin_approval_status" widget="badge"
+                                           decoration-success="admin_approval_status == 'approved'"
+                                           decoration-danger="admin_approval_status == 'rejected'"
+                                           decoration-warning="admin_approval_status == 'pending'"/>
+                                    <field name="admin_approver_id"/>
+                                    <field name="admin_approval_date"/>
+                                </group>
+                                <group string="Level 2 — Heidi Lianawaty Lisan">
+                                    <field name="heidi_approval_status" widget="badge"
+                                           decoration-success="heidi_approval_status == 'approved'"
+                                           decoration-danger="heidi_approval_status == 'rejected'"
+                                           decoration-warning="heidi_approval_status == 'pending'"/>
+                                    <field name="heidi_approval_date"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="approval_status" widget="badge"/>
+                                <field name="rejection_reason" readonly="1"/>
+                            </group>
+                        </page>
+                        <page string="Resolution" name="resolution">
+                            <group>
+                                <group>
+                                    <field name="root_cause"
+                                           readonly="stage_is_locked"
+                                           required="cite_stage_code in ('resolved', 'closed')"/>
+                                    <field name="resolved_date"/>
+                                    <field name="closed_date"/>
+                                </group>
+                            </group>
+                            <separator string="Resolution Notes — wajib diisi sebelum Resolve/Close"/>
+                            <field name="resolution_notes"
+                                   readonly="stage_is_locked"
+                                   required="cite_stage_code in ('resolved', 'closed')"
+                                   placeholder="Tuliskan solusi / langkah penyelesaian yang dilakukan di sini..."/>
+                        </page>
+                        <page string="SLA" name="sla">
+                            <field name="sla_status_ids" readonly="1">
+                                <tree decoration-danger="status == 'failed'"
+                                      decoration-success="status == 'reached'">
+                                    <field name="sla_id"/>
+                                    <field name="deadline"/>
+                                    <field name="reached_datetime"/>
+                                    <field name="status"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ====================== TREE (Bab 9.1) ====================== -->
+    <record id="view_cite_ticket_tree" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.tree.cite</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <tree string="CITE Tickets" multi_edit="1" sample="1"
+                  decoration-danger="sla_fail"
+                  decoration-warning="priority == '3'"
+                  decoration-muted="cite_stage_code in ('closed', 'cancelled', 'rejected')">
+                <field name="cite_stage_code" column_invisible="1"/>
+                <field name="sla_fail" column_invisible="1"/>
+                <field name="team_id" column_invisible="1"/>
+                <field name="ticket_ref" string="No. Tiket"/>
+                <field name="create_date" string="Tanggal" widget="date"/>
+                <field name="name" string="Subject"/>
+                <field name="partner_id" string="Requester"/>
+                <field name="company_id" optional="show"/>
+                <field name="site_id" optional="show"/>
+                <field name="cite_category_id"/>
+                <field name="cite_subcategory_id" optional="hide"/>
+                <field name="priority" widget="priority"/>
+                <field name="stage_id" widget="badge"
+                       decoration-success="cite_stage_code in ('resolved', 'closed')"
+                       decoration-info="cite_stage_code in ('assigned', 'in_progress')"
+                       decoration-warning="cite_stage_code in ('pending_admin', 'pending_heidi')"/>
+                <field name="time_in_stage" string="Time in Stage"/>
+                <field name="approval_status" widget="badge" optional="show"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="sla_deadline" widget="remaining_days"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ====================== KANBAN (Bab 11.1) ====================== -->
+    <record id="view_cite_ticket_kanban" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.kanban.cite</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <!-- drag-and-drop dinonaktifkan agar workflow approval tidak bisa dilewati -->
+            <kanban default_group_by="stage_id" records_draggable="0" sample="1">
+                <field name="sla_fail"/>
+                <field name="ticket_ref"/>
+                <field name="priority"/>
+                <field name="sla_deadline"/>
+                <field name="time_in_stage"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_record_top">
+                                <strong><field name="ticket_ref"/></strong>
+                                <field name="priority" widget="priority"/>
+                            </div>
+                            <div><field name="name"/></div>
+                            <div class="text-muted">
+                                <field name="partner_id"/> · <field name="site_id"/>
+                            </div>
+                            <div>
+                                <span class="badge text-bg-light">
+                                    <field name="cite_category_id"/>
+                                </span>
+                                <span t-if="record.sla_fail.raw_value"
+                                      class="badge text-bg-danger">SLA BREACH</span>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-clock-o me-1"/>in stage <field name="time_in_stage"/>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <div class="oe_kanban_bottom_left">
+                                    <field name="sla_deadline" widget="remaining_days"/>
+                                    <field name="activity_ids" widget="kanban_activity"/>
+                                </div>
+                                <div class="oe_kanban_bottom_right">
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ====================== SEARCH (Bab 10) ====================== -->
+    <record id="view_cite_ticket_search" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.search.cite</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <search string="Cari Tiket">
+                <field name="ticket_ref"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="user_id"/>
+                <field name="equipment_id"/>
+                <field name="cite_category_id"/>
+
+                <filter name="my_tickets" string="Tiket Saya (Agen)"
+                        domain="[('user_id', '=', uid)]"/>
+                <filter name="unassigned" string="Belum Ditugaskan"
+                        domain="[('user_id', '=', False)]"/>
+                <separator/>
+                <filter name="open_states" string="Open/Aktif"
+                        domain="[('stage_id.fold', '=', False)]"/>
+                <filter name="waiting_approval" string="Menunggu Approval"
+                        domain="[('approval_status', '=', 'in_review')]"/>
+                <filter name="sla_breached" string="SLA Breached"
+                        domain="[('sla_fail', '=', True)]"/>
+                <separator/>
+                <filter name="critical" string="Critical"
+                        domain="[('priority', '=', '3')]"/>
+                <filter name="high" string="High"
+                        domain="[('priority', '=', '2')]"/>
+                <separator/>
+                <filter name="this_month" string="Bulan Ini"
+                        domain="[('create_date', '&gt;=', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="g_stage" string="Status" context="{'group_by': 'stage_id'}"/>
+                    <filter name="g_company" string="Company" context="{'group_by': 'company_id'}"/>
+                    <filter name="g_site" string="Site" context="{'group_by': 'site_id'}"/>
+                    <filter name="g_category" string="Category" context="{'group_by': 'cite_category_id'}"/>
+                    <filter name="g_subcategory" string="Sub Category" context="{'group_by': 'cite_subcategory_id'}"/>
+                    <filter name="g_priority" string="Priority" context="{'group_by': 'priority'}"/>
+                    <filter name="g_user" string="Assigned User" context="{'group_by': 'user_id'}"/>
+                    <filter name="g_asset" string="Asset" context="{'group_by': 'equipment_id'}"/>
+                    <filter name="g_root" string="Root Cause" context="{'group_by': 'root_cause'}"/>
+                    <filter name="g_month" string="Bulan" context="{'group_by': 'create_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ====================== ACTIONS ====================== -->
+    <record id="action_cite_tickets" model="ir.actions.act_window">
+        <field name="name">Tickets</field>
+        <field name="res_model">helpdesk.ticket</field>
+        <field name="view_mode">kanban,tree,form,activity,pivot,graph</field>
+        <field name="search_view_id" ref="view_cite_ticket_search"/>
+        <!-- Hanya tiket tim CITE — cegah tiket helpdesk lain (Stargo) bocor ke sini. -->
+        <field name="domain">[('team_id.cite_team', '=', True)]</field>
+        <field name="context" eval="{'search_default_open_states': 1,
+                                     'default_team_id': ref('helpdesk_team_cite')}"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Belum ada tiket</p>
+            <p>Tiket masuk via portal /citehelpdesk2, email helpdesk@company.com,
+               atau input langsung oleh agen IT.</p>
+        </field>
+    </record>
+    <record id="action_cite_tickets_kanban" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">kanban</field>
+        <field name="act_window_id" ref="action_cite_tickets"/>
+        <field name="view_id" ref="view_cite_ticket_kanban"/>
+    </record>
+    <record id="action_cite_tickets_tree" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">tree</field>
+        <field name="act_window_id" ref="action_cite_tickets"/>
+        <field name="view_id" ref="view_cite_ticket_tree"/>
+    </record>
+    <record id="action_cite_tickets_form" model="ir.actions.act_window.view">
+        <field name="sequence">3</field>
+        <field name="view_mode">form</field>
+        <field name="act_window_id" ref="action_cite_tickets"/>
+        <field name="view_id" ref="view_cite_ticket_form"/>
+    </record>
+
+    <record id="action_cite_approval_waiting" model="ir.actions.act_window">
+        <field name="name">Approval Waiting List</field>
+        <field name="res_model">helpdesk.ticket</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('approval_status', '=', 'in_review'), ('team_id.cite_team', '=', True)]</field>
+        <field name="view_id" ref="view_cite_ticket_tree"/>
+        <field name="search_view_id" ref="view_cite_ticket_search"/>
+    </record>
+
+    <record id="action_cite_sla_breached" model="ir.actions.act_window">
+        <field name="name">SLA Breached</field>
+        <field name="res_model">helpdesk.ticket</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('sla_fail', '=', True), ('team_id.cite_team', '=', True)]</field>
+        <field name="view_id" ref="view_cite_ticket_tree"/>
+        <field name="search_view_id" ref="view_cite_ticket_search"/>
+    </record>
+
+    <!-- ====================== Mass actions (SA-07, SA-08) ====================== -->
+    <record id="server_action_assign_to_me" model="ir.actions.server">
+        <field name="name">Assign to Me</field>
+        <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+        <field name="binding_model_id" ref="helpdesk.model_helpdesk_ticket"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">records.action_assign_to_me()</field>
+        <field name="groups_id" eval="[(4, ref('cite_helpdesk.group_it_support'))]"/>
+    </record>
+    <record id="server_action_escalate" model="ir.actions.server">
+        <field name="name">Escalate to Manager</field>
+        <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+        <field name="binding_model_id" ref="helpdesk.model_helpdesk_ticket"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">records.action_escalate_to_manager()</field>
+        <field name="groups_id" eval="[(4, ref('cite_helpdesk.group_it_support'))]"/>
+    </record>
+    <record id="server_action_resend_csat" model="ir.actions.server">
+        <field name="name">Resend CSAT Survey</field>
+        <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+        <field name="binding_model_id" ref="helpdesk.model_helpdesk_ticket"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">records.action_resend_csat()</field>
+        <field name="groups_id" eval="[(4, ref('cite_helpdesk.group_it_support'))]"/>
+    </record>
+
+</odoo>

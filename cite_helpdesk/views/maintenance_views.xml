@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Bab 8.3 — extend form maintenance.equipment dengan field IT asset -->
+    <record id="view_equipment_form_cite" model="ir.ui.view">
+        <field name="name">maintenance.equipment.form.cite</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='serial_no']" position="after">
+                <field name="asset_code"/>
+                <field name="brand"/>
+                <field name="site_id"/>
+                <field name="warranty_end_date"/>
+                <field name="asset_status" widget="badge"
+                       decoration-success="asset_status == 'in_use'"
+                       decoration-warning="asset_status == 'repair'"
+                       decoration-danger="asset_status in ('disposed', 'lost')"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_tickets" type="object"
+                        class="oe_stat_button" icon="fa-life-ring">
+                    <field name="ticket_count" widget="statinfo" string="Tickets"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Bab 9.2 — tree asset -->
+    <record id="view_equipment_tree_cite" model="ir.ui.view">
+        <field name="name">maintenance.equipment.tree.cite</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="asset_code"/>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="brand" optional="show"/>
+                <field name="site_id" optional="show"/>
+                <field name="warranty_end_date" optional="show"/>
+                <field name="asset_status" optional="show" widget="badge"/>
+                <field name="ticket_count" optional="hide" string="Tickets"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_cite_assets" model="ir.actions.act_window">
+        <field name="name">IT Assets</field>
+        <field name="res_model">maintenance.equipment</field>
+        <field name="view_mode">kanban,tree,form</field>
+    </record>
+
+</odoo>

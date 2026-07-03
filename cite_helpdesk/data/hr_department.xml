@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 15 departemen CITE — shared lintas company (company_id kosong),
+             ditandai cite_department agar field departemen tiket hanya
+             menampilkan 15 kode ini (terpisah dari departemen native company). -->
+        <record id="dept_cite" model="hr.department">
+            <field name="name">CITE</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+        <record id="dept_engi" model="hr.department">
+            <field name="name">ENGI</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+        <record id="dept_mpma" model="hr.department">
+            <field name="name">MPMA</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+        <record id="dept_memd" model="hr.department">
+            <field name="name">MEMD</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+        <record id="dept_hcgs" model="hr.department">
+            <field name="name">HCGS</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+        <record id="dept_cfat" model="hr.department">
+            <field name="name">CFAT</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+        <record id="dept_cpmd" model="hr.department">
+            <field name="name">CPMD</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+        <record id="dept_csus" model="hr.department">
+            <field name="name">CSUS</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+        <record id="dept_miop" model="hr.department">
+            <field name="name">MIOP</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+        <record id="dept_expl" model="hr.department">
+            <field name="name">EXPL</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+        <record id="dept_qlab" model="hr.department">
+            <field name="name">QLAB</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+        <record id="dept_legl" model="hr.department">
+            <field name="name">LEGL</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+        <record id="dept_cdre" model="hr.department">
+            <field name="name">CDRE</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+        <record id="dept_govrel" model="hr.department">
+            <field name="name">GOVREL</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+        <record id="dept_smde" model="hr.department">
+            <field name="name">SMDE</field>
+            <field name="company_id" eval="False"/>
+            <field name="cite_department" eval="True"/>
+        </record>
+    </data>
+</odoo>

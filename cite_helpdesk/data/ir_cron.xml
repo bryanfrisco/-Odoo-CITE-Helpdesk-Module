@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- AA-09/10/11 — SLA warning 75%/90% + breach alert -->
+        <record id="ir_cron_sla_warning" model="ir.cron">
+            <field name="name">CITE Helpdesk: SLA Warning (75%/90%/Breach)</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_sla_warning()</field>
+            <field name="interval_number">10</field>
+            <field name="interval_type">minutes</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- AA-08 — auto close 3 hari setelah Resolved -->
+        <record id="ir_cron_auto_close" model="ir.cron">
+            <field name="name">CITE Helpdesk: Auto Close Resolved Tickets</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_auto_close()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- AA-12 — reminder approval pending > 24 jam -->
+        <record id="ir_cron_approval_reminder" model="ir.cron">
+            <field name="name">CITE Helpdesk: Approval Reminder</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_approval_reminder()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- AA-13 — warranty expiring (mingguan) -->
+        <record id="ir_cron_warranty_alert" model="ir.cron">
+            <field name="name">CITE Helpdesk: Asset Warranty Alert</field>
+            <field name="model_id" ref="maintenance.model_maintenance_equipment"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_warranty_alert()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">weeks</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

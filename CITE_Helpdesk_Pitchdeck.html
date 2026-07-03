@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CITE Helpdesk — Pitch Deck</title>
+<style>
+  :root{
+    --bg:#0b1220; --bg2:#0f1830; --card:#16213e;
+    --ink:#eaf0ff; --mut:#9fb0d0; --line:rgba(255,255,255,.10);
+    --c1:#22d3ee; --c2:#7c5cff; --c3:#34d399; --warn:#fbbf24; --bad:#fb7185;
+    --grad:linear-gradient(120deg,#22d3ee 0%,#7c5cff 60%,#a855f7 100%);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    background:radial-gradient(1200px 700px at 80% -10%,rgba(124,92,255,.18),transparent 60%),
+               radial-gradient(900px 600px at 0% 110%,rgba(34,211,238,.14),transparent 55%),
+               var(--bg);
+    color:var(--ink); overflow:hidden;
+  }
+  /* ---- Deck mechanics ---- */
+  .deck{height:100vh;width:100vw;position:relative}
+  .slide{
+    position:absolute;inset:0;display:none;flex-direction:column;
+    padding:6vh 8vw;justify-content:center;
+    animation:fade .45s ease both;
+  }
+  .slide.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  /* ---- Top bar ---- */
+  .bar{position:fixed;top:0;left:0;right:0;height:4px;z-index:50;background:rgba(255,255,255,.06)}
+  .bar>i{display:block;height:100%;background:var(--grad);transition:width .35s ease}
+  .brandtag{position:fixed;top:16px;left:26px;z-index:40;font-weight:700;letter-spacing:.5px;
+    font-size:13px;color:var(--mut)}
+  .brandtag b{color:var(--c1)}
+  .pager{position:fixed;bottom:16px;right:26px;z-index:40;font-size:13px;color:var(--mut)}
+  .hint{position:fixed;bottom:16px;left:26px;z-index:40;font-size:12px;color:var(--mut);opacity:.7}
+  /* ---- Typography ---- */
+  h1{font-size:clamp(34px,6vw,76px);line-height:1.02;letter-spacing:-1.5px}
+  h2{font-size:clamp(26px,3.4vw,44px);line-height:1.08;letter-spacing:-.6px;margin-bottom:26px}
+  h2 .pre{display:block;font-size:14px;letter-spacing:3px;font-weight:700;color:var(--c1);
+    margin-bottom:10px;text-transform:uppercase}
+  .lead{font-size:clamp(16px,1.7vw,22px);color:var(--mut);max-width:60ch;line-height:1.5}
+  .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .kbd{font:600 12px ui-monospace,Consolas,monospace;background:#1e2a4a;border:1px solid var(--line);
+    padding:2px 7px;border-radius:6px;color:var(--ink)}
+  /* ---- Components ---- */
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+    border:1px solid var(--line);border-radius:16px;padding:22px 22px;backdrop-filter:blur(6px)}
+  .card .ic{font-size:30px;display:block;margin-bottom:10px}
+  .card h3{font-size:19px;margin-bottom:6px;letter-spacing:-.2px}
+  .card p{font-size:14.5px;color:var(--mut);line-height:1.45}
+  .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);
+    background:rgba(255,255,255,.04);border-radius:999px;padding:8px 16px;font-size:14px;color:var(--mut)}
+  .pill b{color:var(--ink)}
+  .chips{display:flex;flex-wrap:wrap;gap:10px}
+  .chip{font:600 13px ui-monospace,Consolas,monospace;border:1px solid var(--line);
+    background:#13203c;color:var(--c1);padding:6px 12px;border-radius:8px}
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:14px;margin-top:6px}
+  ul.clean li{display:flex;gap:14px;font-size:17px;line-height:1.4;color:var(--ink)}
+  ul.clean li .mk{flex:0 0 auto;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+    font-size:15px;background:rgba(34,211,238,.14);border:1px solid rgba(34,211,238,.35)}
+  ul.clean li.bad .mk{background:rgba(251,113,133,.14);border-color:rgba(251,113,133,.4)}
+  ul.clean li small{color:var(--mut)}
+  /* flow */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+  .step{flex:1;min-width:120px;background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:16px 14px;text-align:center;position:relative}
+  .step .n{font:800 12px ui-monospace,monospace;color:var(--c2)}
+  .step .t{font-size:15px;font-weight:700;margin-top:6px}
+  .step .d{font-size:12.5px;color:var(--mut);margin-top:4px}
+  .arrow{display:flex;align-items:center;justify-content:center;color:var(--c1);font-size:22px;
+    padding:0 6px}
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:16px;overflow:hidden;border-radius:14px}
+  th,td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line)}
+  thead th{background:rgba(124,92,255,.16);color:var(--ink);font-size:13px;letter-spacing:1px;
+    text-transform:uppercase}
+  tbody tr:nth-child(odd){background:rgba(255,255,255,.025)}
+  .tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:700}
+  .t-crit{background:rgba(251,113,133,.18);color:#ffb3bf}
+  .t-high{background:rgba(251,191,36,.18);color:#ffe08a}
+  .t-med{background:rgba(34,211,238,.16);color:#9bedff}
+  .t-low{background:rgba(52,211,153,.16);color:#9af0cf}
+  .stat{display:flex;gap:34px;flex-wrap:wrap;margin-top:10px}
+  .stat .s b{display:block;font-size:clamp(30px,4vw,52px);line-height:1;background:var(--grad);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat .s span{font-size:13.5px;color:var(--mut)}
+  .two{display:grid;grid-template-columns:1.05fr .95fr;gap:46px;align-items:center}
+  .center{align-items:center;text-align:center}
+  .badge{display:inline-block;font:700 12px/1 ui-monospace,monospace;color:var(--c1);
+    border:1px solid rgba(34,211,238,.4);padding:7px 12px;border-radius:999px;margin-bottom:22px}
+  .foot{margin-top:30px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .logo{display:inline-flex;align-items:center;gap:14px}
+  .logo .mark{width:58px;height:58px;border-radius:16px;background:var(--grad);display:grid;
+    place-items:center;font-weight:800;font-size:26px;color:#07101f;box-shadow:0 10px 40px rgba(124,92,255,.4)}
+  .muted{color:var(--mut)}
+  .small{font-size:13px}
+  .nav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:45;display:flex;gap:8px}
+  .nav button{background:#16213e;color:var(--ink);border:1px solid var(--line);border-radius:10px;
+    width:40px;height:34px;font-size:16px;cursor:pointer}
+  .nav button:hover{border-color:var(--c1)}
+  /* print = export PDF: show every slide stacked */
+  @media print{
+    body{overflow:visible;height:auto}
+    .deck{height:auto}
+    .bar,.brandtag,.pager,.hint,.nav{display:none!important}
+    .slide{display:flex!important;position:relative;inset:auto;height:100vh;page-break-after:always;
+      animation:none}
+  }
+</style>
+</head>
+<body>
+<div class="bar"><i id="bar"></i></div>
+<div class="brandtag"><b>CITE</b> HELPDESK</div>
+<div class="pager"><span id="cur">1</span> / <span id="tot">14</span></div>
+<div class="hint">← → navigasi · <span class="kbd">F</span> fullscreen · <span class="kbd">Ctrl</span>+<span class="kbd">P</span> PDF</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 COVER -->
+  <section class="slide center">
+    <div class="logo" style="justify-content:center;margin-bottom:26px">
+      <div class="mark">C</div>
+      <div style="text-align:left">
+        <div style="font-weight:800;font-size:22px;letter-spacing:1px">CITE&nbsp;HELPDESK</div>
+        <div class="small muted">IT Service Management · Grup Stargate</div>
+      </div>
+    </div>
+    <h1>Satu Pintu untuk<br><span class="grad">Seluruh Kebutuhan IT</span></h1>
+    <p class="lead" style="margin:22px auto 0">Portal layanan IT terpusat untuk PT Stargate Pasific Resources,
+       PT Stargate Mineral Asia, dan PT Rajawali Sigi Lestari — tiket, prioritas otomatis,
+       persetujuan, SLA, dan dashboard dalam satu sistem.</p>
+    <div class="foot center" style="justify-content:center">
+      <span class="pill">🌐 <b>stargo.odoo.com/citehelpdesk2</b></span>
+      <span class="pill">✉️ <b>cite@aspire.id</b></span>
+      <span class="pill">⚙️ <b>Odoo 17 Enterprise</b></span>
+    </div>
+  </section>
+
+  <!-- 2 MASALAH -->
+  <section class="slide">
+    <h2><span class="pre">Masalah</span>Permintaan IT tersebar & sulit dilacak</h2>
+    <div class="two">
+      <ul class="clean">
+        <li class="bad"><span class="mk">✕</span><div>Lapor lewat <b>WA / telepon / japri</b> — tidak tercatat, mudah hilang.</div></li>
+        <li class="bad"><span class="mk">✕</span><div>Tidak ada <b>prioritas jelas</b> — yang berteriak paling keras dilayani duluan.</div></li>
+        <li class="bad"><span class="mk">✕</span><div>Tidak ada <b>SLA & jejak waktu</b> — sulit tahu mana yang terlambat.</div></li>
+        <li class="bad"><span class="mk">✕</span><div>Permintaan akses/aset <b>tanpa persetujuan resmi</b> dan tanpa audit.</div></li>
+        <li class="bad"><span class="mk">✕</span><div><b>3 perusahaan</b> ditangani terpisah — tidak ada gambaran menyeluruh.</div></li>
+      </ul>
+      <div class="card">
+        <div class="ic">📉</div>
+        <h3>Akibatnya</h3>
+        <p style="margin-top:8px;font-size:16px;line-height:1.6">Respons lambat, beban IT tidak merata,
+        manajemen tidak punya data, dan tidak ada bukti audit saat dibutuhkan.</p>
+        <div class="chips" style="margin-top:18px">
+          <span class="chip">Tidak terukur</span>
+          <span class="chip">Tidak terdokumentasi</span>
+          <span class="chip">Tidak terkoordinasi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 SOLUSI -->
+  <section class="slide center">
+    <span class="badge">SOLUSI</span>
+    <h1 style="font-size:clamp(30px,5vw,60px)">Satu portal, alur terstruktur,<br>
+      <span class="grad">terukur dari ujung ke ujung</span></h1>
+    <p class="lead" style="margin:22px auto 0">Karyawan cukup membuat <b>satu tiket</b>. Sistem menghitung
+      prioritas, menjalankan persetujuan bila perlu, memantau SLA, lalu menyajikan semuanya
+      di dashboard real-time — lintas tiga perusahaan.</p>
+    <div class="stat" style="justify-content:center;margin-top:34px">
+      <div class="s"><b>1</b><span>Pintu masuk (SPOC)</span></div>
+      <div class="s"><b>3</b><span>Perusahaan terlayani</span></div>
+      <div class="s"><b>2</b><span>Level persetujuan</span></div>
+      <div class="s"><b>24/7</b><span>Self-service portal</span></div>
+    </div>
+  </section>
+
+  <!-- 4 ALUR -->
+  <section class="slide">
+    <h2><span class="pre">Cara Kerja</span>Dari laporan ke penyelesaian</h2>
+    <div class="flow">
+      <div class="step"><div class="n">01</div><div class="t">Buat Tiket</div><div class="d">Karyawan isi form di portal</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">02</div><div class="t">Prioritas Otomatis</div><div class="d">Impact × Urgency</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">03</div><div class="t">Persetujuan</div><div class="d">2 level (bila perlu)</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">04</div><div class="t">Dikerjakan IT</div><div class="d">Sesuai SLA</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">05</div><div class="t">Selesai + Rating</div><div class="d">Resolved & CSAT</div></div>
+    </div>
+    <div class="grid g3" style="margin-top:30px">
+      <div class="card"><div class="ic">🎫</div><h3>Nomor tiket unik</h3><p>Format <b>IT-YYYY-XXXXX</b> untuk setiap laporan — mudah dirujuk.</p></div>
+      <div class="card"><div class="ic">🔔</div><h3>Notifikasi otomatis</h3><p>Email di setiap tahap: dibuat, disetujui, ditangani, selesai.</p></div>
+      <div class="card"><div class="ic">🔄</div><h3>Auto-close</h3><p>Tiket Resolved tertutup otomatis dalam 3 hari bila tidak ada balasan.</p></div>
+    </div>
+  </section>
+
+  <!-- 5 FITUR -->
+  <section class="slide">
+    <h2><span class="pre">Fitur Utama</span>Lengkap, tapi ringan dipakai</h2>
+    <div class="grid g4">
+      <div class="card"><div class="ic">🌐</div><h3>Portal Self-Service</h3><p>Buat & pantau tiket sendiri di <b>/citehelpdesk2</b>.</p></div>
+      <div class="card"><div class="ic">⚡</div><h3>Prioritas Otomatis</h3><p>Matriks Impact × Urgency → Low s/d Critical.</p></div>
+      <div class="card"><div class="ic">✅</div><h3>Double Approval</h3><p>IT Administrator → Heidi Lianawaty Lisan.</p></div>
+      <div class="card"><div class="ic">⏱️</div><h3>SLA Tracking</h3><p>Target respon & penyelesaian + peringatan 75%/90%.</p></div>
+      <div class="card"><div class="ic">📊</div><h3>Dashboard Real-time</h3><p>KPI, tren, top solver, SLA — refresh tiap 60 detik.</p></div>
+      <div class="card"><div class="ic">💻</div><h3>Registry Aset IT</h3><p>Laptop, printer, server, CCTV terdata & tertaut tiket.</p></div>
+      <div class="card"><div class="ic">🏢</div><h3>Multi-Company</h3><p>3 perusahaan dalam satu sistem, data tetap terpisah rapi.</p></div>
+      <div class="card"><div class="ic">🛡️</div><h3>Audit Trail</h3><p>Setiap aksi & persetujuan tercatat permanen.</p></div>
+    </div>
+  </section>
+
+  <!-- 6 PRIORITAS -->
+  <section class="slide">
+    <h2><span class="pre">Mesin Prioritas</span>Adil & otomatis — bukan siapa paling keras</h2>
+    <div class="two">
+      <div>
+        <p class="lead" style="margin-bottom:20px">Pelapor hanya menjawab dua pertanyaan sederhana.
+          Sistem menghitung prioritas memakai matriks <b>Impact × Urgency</b>.</p>
+        <div class="grid g2" style="gap:14px">
+          <div class="card"><h3>① Siapa terdampak?</h3><p>Saya · departemen · lokasi · seluruh perusahaan</p></div>
+          <div class="card"><h3>② Seberapa mendesak?</h3><p>Request rutin → lokasi lumpuh total</p></div>
+        </div>
+      </div>
+      <div class="card center" style="padding:30px">
+        <div class="chips" style="justify-content:center;margin-bottom:14px">
+          <span class="tag t-low">LOW</span><span class="tag t-med">MEDIUM</span>
+          <span class="tag t-high">HIGH</span><span class="tag t-crit">CRITICAL</span>
+        </div>
+        <p class="muted" style="font-size:15px;line-height:1.6">Hasilnya konsisten dan obyektif —
+          tiket kritikal yang melumpuhkan kerja otomatis naik ke atas antrean,
+          permintaan rutin tetap tertib.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 SLA -->
+  <section class="slide">
+    <h2><span class="pre">Komitmen Layanan (SLA)</span>Target waktu yang jelas</h2>
+    <div class="two">
+      <table>
+        <thead><tr><th>Prioritas</th><th>Respon</th><th>Penyelesaian</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag t-crit">Critical</span></td><td>1 jam</td><td>3 hari kerja</td></tr>
+          <tr><td><span class="tag t-high">High</span></td><td>2 jam</td><td>4 hari kerja</td></tr>
+          <tr><td><span class="tag t-med">Medium</span></td><td>4 jam</td><td>5 hari kerja</td></tr>
+          <tr><td><span class="tag t-low">Low</span></td><td>4 jam</td><td>5 hari kerja</td></tr>
+        </tbody>
+      </table>
+      <ul class="clean">
+        <li><span class="mk">⏰</span><div><b>Peringatan dini</b> otomatis saat SLA terpakai 75% &amp; 90%.</div></li>
+        <li><span class="mk">🚨</span><div><b>Alert breach</b> ke manajer IT bila target terlampaui.</div></li>
+        <li><span class="mk">📈</span><div><b>SLA Compliance</b> terukur per hari/minggu/bulan/tahun.</div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 8 APPROVAL -->
+  <section class="slide">
+    <h2><span class="pre">Persetujuan Berjenjang</span>Kontrol untuk akses, server & aset</h2>
+    <div class="flow" style="margin-bottom:26px">
+      <div class="step"><div class="n">PENGAJUAN</div><div class="t">Tiket butuh approval</div><div class="d">Access · Server · Asset Request</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">LEVEL 1</div><div class="t">IT Administrator</div><div class="d">Notifikasi → cite@aspire.id</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">LEVEL 2</div><div class="t">Heidi Lianawaty Lisan</div><div class="d">Notifikasi → heidi.lianawaty@aspire.id</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">HASIL</div><div class="t">Disetujui → Assigned</div><div class="d">Otomatis ke agen IT</div></div>
+    </div>
+    <div class="grid g3">
+      <div class="card"><div class="ic">🔐</div><h3>Segregation of Duty</h3><p>Tidak bisa menyetujui tiket buatan sendiri.</p></div>
+      <div class="card"><div class="ic">📝</div><h3>Penolakan beralasan</h3><p>Reject wajib menyertakan alasan — tercatat.</p></div>
+      <div class="card"><div class="ic">📜</div><h3>Jejak permanen</h3><p>Siapa, kapan, dan keputusan apa — terekam.</p></div>
+    </div>
+  </section>
+
+  <!-- 9 DASHBOARD -->
+  <section class="slide">
+    <h2><span class="pre">Dashboard Overview</span>Manajemen melihat semuanya, real-time</h2>
+    <div class="grid g4" style="margin-bottom:18px">
+      <div class="card center"><div class="ic">🟢</div><h3>Open</h3><p>Tiket aktif</p></div>
+      <div class="card center"><div class="ic">⏳</div><h3>Need Response</h3><p>Belum direspon</p></div>
+      <div class="card center"><div class="ic">🟠</div><h3>Almost Overdue</h3><p>≤ 2 jam ke deadline</p></div>
+      <div class="card center"><div class="ic">🔴</div><h3>Overdue</h3><p>SLA terlampaui</p></div>
+    </div>
+    <ul class="clean">
+      <li><span class="mk">🏢</span><div><b>Mengikuti pilihan perusahaan</b> — centang 1 company lihat tiket company itu, centang beberapa lihat gabungannya.</div></li>
+      <li><span class="mk">📊</span><div>Tren 14 hari (dibuat vs selesai), top solver bulan ini, donut per status, dan gauge SLA Compliance.</div></li>
+      <li><span class="mk">🔄</span><div>Auto-refresh tiap 60 detik — klik kartu langsung tembus ke daftar tiket terkait.</div></li>
+    </ul>
+  </section>
+
+  <!-- 10 MULTI COMPANY -->
+  <section class="slide">
+    <h2><span class="pre">Multi-Company</span>Tiga perusahaan, satu sistem</h2>
+    <div class="grid g3" style="margin-bottom:26px">
+      <div class="card"><div class="ic">⛏️</div><h3>Stargate Pasific Resources</h3><p>Tiket, aset, & SLA tersendiri.</p></div>
+      <div class="card"><div class="ic">🪨</div><h3>Stargate Mineral Asia</h3><p>Tiket, aset, & SLA tersendiri.</p></div>
+      <div class="card"><div class="ic">🦅</div><h3>Rajawali Sigi Lestari</h3><p>Tiket, aset, & SLA tersendiri.</p></div>
+    </div>
+    <div class="two">
+      <ul class="clean">
+        <li><span class="mk">🔀</span><div>Satu tim IT shared-service melayani ketiganya — efisien.</div></li>
+        <li><span class="mk">🗂️</span><div>Data per-perusahaan tetap terpisah & sesuai hak akses.</div></li>
+      </ul>
+      <div class="card">
+        <div class="ic">🏷️</div>
+        <h3>15 Departemen terstandar</h3>
+        <div class="chips" style="margin-top:12px">
+          <span class="chip">CITE</span><span class="chip">ENGI</span><span class="chip">MPMA</span>
+          <span class="chip">MEMD</span><span class="chip">HCGS</span><span class="chip">CFAT</span>
+          <span class="chip">CPMD</span><span class="chip">CSUS</span><span class="chip">MIOP</span>
+          <span class="chip">EXPL</span><span class="chip">QLAB</span><span class="chip">LEGL</span>
+          <span class="chip">CDRE</span><span class="chip">GOVREL</span><span class="chip">SMDE</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 MANFAAT -->
+  <section class="slide">
+    <h2><span class="pre">Manfaat</span>Menang untuk semua pihak</h2>
+    <div class="grid g3">
+      <div class="card">
+        <div class="ic">👥</div><h3>Bagi Karyawan</h3>
+        <ul class="clean" style="margin-top:12px">
+          <li><span class="mk">✓</span><div>Lapor cepat, satu pintu</div></li>
+          <li><span class="mk">✓</span><div>Status transparan & ada nomor</div></li>
+          <li><span class="mk">✓</span><div>Tidak perlu mengejar IT</div></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="ic">🧑‍💻</div><h3>Bagi Tim IT</h3>
+        <ul class="clean" style="margin-top:12px">
+          <li><span class="mk">✓</span><div>Antrean terprioritas otomatis</div></li>
+          <li><span class="mk">✓</span><div>Beban kerja terbagi merata</div></li>
+          <li><span class="mk">✓</span><div>Dokumentasi & aset rapi</div></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="ic">📈</div><h3>Bagi Manajemen</h3>
+        <ul class="clean" style="margin-top:12px">
+          <li><span class="mk">✓</span><div>Visibilitas real-time lintas company</div></li>
+          <li><span class="mk">✓</span><div>SLA & kepatuhan terukur</div></li>
+          <li><span class="mk">✓</span><div>Kontrol approval & audit trail</div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 TEKNOLOGI -->
+  <section class="slide">
+    <h2><span class="pre">Fondasi Teknologi</span>Native-first, andal, mudah dirawat</h2>
+    <div class="two">
+      <ul class="clean">
+        <li><span class="mk">⚙️</span><div>Dibangun di atas <b>Odoo 17 Enterprise</b> — Helpdesk, Maintenance, Portal, Rating, Website.</div></li>
+        <li><span class="mk">🪶</span><div>Kustomisasi <b>ringan</b>: matriks prioritas, double approval, penomoran, SLA, auto-close.</div></li>
+        <li><span class="mk">🤝</span><div><b>Berdampingan</b> dengan helpdesk lain (Stargo) di basis data yang sama — terpisah rapi.</div></li>
+        <li><span class="mk">☁️</span><div>Deploy via <b>Odoo.sh</b> (staging &amp; production) oleh vendor.</div></li>
+      </ul>
+      <div class="card center" style="padding:30px">
+        <div class="ic" style="font-size:42px">🏗️</div>
+        <h3 style="font-size:22px">Native-first</h3>
+        <p style="margin-top:8px;font-size:15px;line-height:1.6">Memaksimalkan fitur bawaan Odoo →
+          lebih stabil, hemat biaya pemeliharaan, dan mudah di-upgrade.</p>
+        <div class="chips" style="justify-content:center;margin-top:18px">
+          <span class="chip">v17.0.1.4.1</span><span class="chip">OPL-1</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 STATUS -->
+  <section class="slide">
+    <h2><span class="pre">Status &amp; Langkah Berikutnya</span>Siap naik produksi</h2>
+    <div class="flow" style="margin-bottom:28px">
+      <div class="step"><div class="n">✓ SELESAI</div><div class="t">Pembangunan modul</div><div class="d">Fitur inti & dokumentasi</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">✓ SELESAI</div><div class="t">Uji di Staging</div><div class="d">Odoo.sh staging</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">→ BERIKUTNYA</div><div class="t">Sosialisasi</div><div class="d">Panduan pengguna siap</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">→ BERIKUTNYA</div><div class="t">Go-Live Produksi</div><div class="d">Oleh vendor</div></div>
+    </div>
+    <div class="grid g3">
+      <div class="card"><div class="ic">📘</div><h3>Panduan Pengguna</h3><p>Untuk karyawan, agen IT, &amp; approver — siap presentasi.</p></div>
+      <div class="card"><div class="ic">📦</div><h3>Paket Modul</h3><p>Siap deploy ke produksi (build terverifikasi).</p></div>
+      <div class="card"><div class="ic">🎓</div><h3>Pelatihan singkat</h3><p>Onboarding tim IT &amp; approver sebelum go-live.</p></div>
+    </div>
+  </section>
+
+  <!-- 14 CLOSING -->
+  <section class="slide center">
+    <div class="logo" style="justify-content:center;margin-bottom:24px">
+      <div class="mark">C</div>
+    </div>
+    <h1>Layanan IT yang <span class="grad">cepat, adil, dan terukur</span></h1>
+    <p class="lead" style="margin:22px auto 0">CITE Helpdesk mengubah permintaan IT yang berserakan
+      menjadi alur yang rapi, transparan, dan dapat dipertanggungjawabkan — untuk seluruh grup Stargate.</p>
+    <div class="foot center" style="justify-content:center;margin-top:30px">
+      <span class="pill">🌐 <b>stargo.odoo.com/citehelpdesk2</b></span>
+      <span class="pill">✉️ <b>cite@aspire.id</b></span>
+    </div>
+    <p class="small muted" style="margin-top:26px">Terima kasih.</p>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button id="prev" aria-label="Sebelumnya">‹</button>
+  <button id="next" aria-label="Berikutnya">›</button>
+</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  const tot=slides.length; let i=0;
+  document.getElementById('tot').textContent=tot;
+  function show(n){
+    i=Math.max(0,Math.min(tot-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    document.getElementById('cur').textContent=i+1;
+    document.getElementById('bar').style.width=((i+1)/tot*100)+'%';
+  }
+  function next(){show(i+1)} function prev(){show(i-1)}
+  document.getElementById('next').onclick=next;
+  document.getElementById('prev').onclick=prev;
+  document.addEventListener('keydown',e=>{
+    if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();next()}
+    else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();prev()}
+    else if(e.key==='Home'){show(0)} else if(e.key==='End'){show(tot-1)}
+    else if(e.key==='f'||e.key==='F'){
+      if(!document.fullscreenElement){document.documentElement.requestFullscreen()}
+      else{document.exitFullscreen()}
+    }
+  });
+  // swipe (touch)
+  let x0=null;
+  addEventListener('touchstart',e=>x0=e.touches[0].clientX,{passive:true});
+  addEventListener('touchend',e=>{
+    if(x0===null)return; const dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50){dx<0?next():prev()} x0=null;
+  });
+  show(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+/* CITE Helpdesk portal — penyesuaian ringan, Bootstrap 5 native sudah responsive. */
+.o_cite_portal {
+    .card {
+        transition: box-shadow 0.15s ease-in-out;
+        &:hover {
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+        }
+    }
+
+    // Tombol full-width di mobile (Bab 12.5)
+    @media (min-width: 768px) {
+        .w-md-auto {
+            width: auto !important;
+        }
+    }
+}

@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_cite_site_internal,cite.site internal read,model_cite_site,base.group_user,1,0,0,0
+access_cite_site_portal,cite.site portal read,model_cite_site,base.group_portal,1,0,0,0
+access_cite_site_admin,cite.site it admin,model_cite_site,group_it_administrator,1,1,1,0
+access_cite_site_system,cite.site system,model_cite_site,base.group_system,1,1,1,1
+access_cite_category_internal,cite.category internal read,model_cite_category,base.group_user,1,0,0,0
+access_cite_category_portal,cite.category portal read,model_cite_category,base.group_portal,1,0,0,0
+access_cite_category_admin,cite.category it admin,model_cite_category,group_it_administrator,1,1,1,0
+access_cite_category_system,cite.category system,model_cite_category,base.group_system,1,1,1,1
+access_cite_subcategory_internal,cite.subcategory internal read,model_cite_subcategory,base.group_user,1,0,0,0
+access_cite_subcategory_portal,cite.subcategory portal read,model_cite_subcategory,base.group_portal,1,0,0,0
+access_cite_subcategory_admin,cite.subcategory it admin,model_cite_subcategory,group_it_administrator,1,1,1,0
+access_cite_subcategory_system,cite.subcategory system,model_cite_subcategory,base.group_system,1,1,1,1
+access_maintenance_equipment_portal,maintenance.equipment portal read,maintenance.model_maintenance_equipment,base.group_portal,1,0,0,0
+access_cite_ticket_reject_wizard,cite.ticket.reject.wizard helpdesk user,model_cite_ticket_reject_wizard,helpdesk.group_helpdesk_user,1,1,1,1

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================================================================
+         Backfill field yang dikelola modul SETIAP upgrade.
+         Tidak bisa pakai <record> biasa: team & kategori dibuat dengan
+         noupdate=1, sehingga flag noupdate tersimpan di ir.model.data dan
+         update <record> berikutnya DIABAIKAN (gotcha Odoo). <function>
+         menjalankan method Python langsung, jadi tidak terpengaruh noupdate.
+
+         Yang ditegaskan:
+           1. cite_team = True pada tim CITE (pemisah tiket CITE vs Stargo)
+           2. ikon kartu kategori di portal (hanya jika kosong/ikon default)
+         Lihat models/helpdesk_team.py::_cite_post_deploy_sync.
+         ================================================================ -->
+    <function model="helpdesk.team" name="_cite_post_deploy_sync"/>
+</odoo>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Company kedua & ketiga (company utama = PT Stargate Pasific Resources) -->
+        <record id="company_b" model="res.company">
+            <field name="name">PT Rajawali Sigi Lestari</field>
+        </record>
+        <record id="company_c" model="res.company">
+            <field name="name">PT Stargate Mineral Asia</field>
+        </record>
+
+        <!-- Approver L2 -->
+        <record id="user_heidi" model="res.users">
+            <field name="name">Heidi Lianawaty Lisan</field>
+            <field name="login">heidi.lisan</field>
+            <field name="email">heidi.lisan@company.com</field>
+            <field name="groups_id" eval="[(4, ref('base.group_user')), (4, ref('cite_helpdesk.group_heidi_approver'))]"/>
+        </record>
+
+        <!-- Contoh aset IT (Bab 7.5) -->
+        <record id="equipment_lt001" model="maintenance.equipment">
+            <field name="name">Dell Latitude 5440</field>
+            <field name="asset_code">LT-001</field> 
+            <field name="brand">Dell</field>
+            <field name="model">Latitude 5440</field>
+            <field name="serial_no">SN-LT001-XXXX</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="site_id" ref="cite_helpdesk.site_ho_a"/>
+            <field name="asset_status">in_use</field>
+        </record>
+        <record id="equipment_prn005" model="maintenance.equipment">
+            <field name="name">HP LaserJet M404</field>
+            <field name="asset_code">PRN-005</field>
+            <field name="brand">HP</field>
+            <field name="model">LaserJet M404</field>
+            <field name="serial_no">SN-PRN005-XXXX</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="site_id" ref="cite_helpdesk.site_ho_a"/>
+            <field name="asset_status">in_use</field>
+        </record>
+        <record id="equipment_srv002" model="maintenance.equipment">
+            <field name="name">Application Server VM</field>
+            <field name="asset_code">SRV-002</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="site_id" ref="cite_helpdesk.site_ho_a"/>
+            <field name="asset_status">in_use</field>
+        </record>
+
+    </data>
+</odoo>

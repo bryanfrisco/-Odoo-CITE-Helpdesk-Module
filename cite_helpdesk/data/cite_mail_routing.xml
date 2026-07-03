@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ============================================================
+             Routing email CITE Helpdesk
+             ============================================================
+             partner_cite_mailbox = "mailbox" pusat tim CITE.
+             Setiap tiket baru:
+               * email "Ticket Created" di-CC ke alamat ini, dan
+               * mailbox dijadikan follower tiket (lihat helpdesk_ticket.create)
+             sehingga SELURUH tiket yang masuk tembusan ke cite@aspire.id.
+
+             Cukup ubah email di kontak ini (atau via Studio) untuk
+             memindahkan alamat pusat, tanpa perlu ubah kode.
+             ============================================================ -->
+        <record id="partner_cite_mailbox" model="res.partner">
+            <field name="name">CITE Helpdesk</field>
+            <field name="email">cite@aspire.id</field>
+            <field name="type">contact</field>
+            <field name="comment">Mailbox pusat CITE Helpdesk. Menerima tembusan
+                setiap tiket baru (CC + follower). Notifikasi approval Level 2
+                dikirim terpisah ke anggota grup "Heidi Approver".</field>
+        </record>
+
+    </data>
+</odoo>

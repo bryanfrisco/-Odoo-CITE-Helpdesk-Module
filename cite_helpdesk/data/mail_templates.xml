@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ET-01 — Ticket Created (Auto Reply) -->
+        <record id="mail_tpl_ticket_created" model="mail.template">
+            <field name="name">CITE: ET-01 Ticket Created</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">[{{ object.ticket_ref }}] Ticket berhasil dibuat</field>
+            <field name="partner_to">{{ object.partner_id.id }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p>Yth. <t t-out="object.partner_id.name or 'Pengguna'"/>,</p>
+<p>Ticket berhasil dibuat.</p>
+<table style="border-collapse:collapse" cellpadding="6">
+  <tr><td><b>Nomor Ticket</b></td><td>: <t t-out="object.ticket_ref"/></td></tr>
+  <tr><td><b>Subject</b></td><td>: <t t-out="object.name"/></td></tr>
+  <tr><td><b>Category</b></td><td>: <t t-out="object.cite_category_id.name or '-'"/> /
+      <t t-out="object.cite_subcategory_id.name or '-'"/></td></tr>
+  <tr><td><b>Priority</b></td><td>: <t t-out="dict(object._fields['priority'].selection).get(object.priority)"/></td></tr>
+  <tr t-if="object.sla_deadline"><td><b>Target Respon</b></td>
+      <td>: <t t-out="format_datetime(object.sla_deadline, tz=user.tz)"/></td></tr>
+  <tr><td><b>Status</b></td><td>: <t t-out="object.stage_id.name"/></td></tr>
+</table>
+<p>Pantau tiket Anda di
+   <a t-attf-href="/my/ticket/{{ object.id }}">Portal CITE Helpdesk</a>.</p>
+<p>Terima kasih,<br/>CITE Helpdesk Team</p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-02 — Ticket Assigned (ke agen) -->
+        <record id="mail_tpl_ticket_assigned" model="mail.template">
+            <field name="name">CITE: ET-02 Ticket Assigned</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">[{{ object.ticket_ref }}] Tiket ditugaskan kepada Anda</field>
+            <field name="email_to">{{ object.user_id.email_formatted }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p>Halo <t t-out="object.user_id.name"/>,</p>
+<p>Tiket <b><t t-out="object.ticket_ref"/></b> — "<t t-out="object.name"/>" ditugaskan kepada Anda.</p>
+<p>Priority: <b><t t-out="dict(object._fields['priority'].selection).get(object.priority)"/></b>
+   <t t-if="object.sla_deadline"> | SLA: <t t-out="format_datetime(object.sla_deadline, tz=user.tz)"/></t></p>
+<p><a t-attf-href="/web#id={{ object.id }}&amp;model=helpdesk.ticket&amp;view_type=form">Buka tiket</a></p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-03 — Approval Request L1 (email_to diisi runtime: group IT Administrator) -->
+        <record id="mail_tpl_admin_approval_request" model="mail.template">
+            <field name="name">CITE: ET-03 Approval Request L1</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">[{{ object.ticket_ref }}] Membutuhkan Approval Administrator</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p>Tiket berikut membutuhkan <b>Approval Level 1 (IT Administrator)</b>:</p>
+<table style="border-collapse:collapse" cellpadding="6">
+  <tr><td><b>Nomor</b></td><td>: <t t-out="object.ticket_ref"/></td></tr>
+  <tr><td><b>Subject</b></td><td>: <t t-out="object.name"/></td></tr>
+  <tr><td><b>Requester</b></td><td>: <t t-out="object.partner_id.name or '-'"/></td></tr>
+  <tr><td><b>Category</b></td><td>: <t t-out="object.cite_category_id.name or '-'"/> /
+      <t t-out="object.cite_subcategory_id.name or '-'"/></td></tr>
+</table>
+<p><a t-attf-href="/web#id={{ object.id }}&amp;model=helpdesk.ticket&amp;view_type=form">Review &amp; Approve/Reject</a></p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-04 — Administrator Approved (ke requester) -->
+        <record id="mail_tpl_admin_approved" model="mail.template">
+            <field name="name">CITE: ET-04 Administrator Approved</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">[{{ object.ticket_ref }}] Disetujui Administrator — menunggu approval berikutnya</field>
+            <field name="partner_to">{{ object.partner_id.id }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p>Yth. <t t-out="object.partner_id.name or 'Pengguna'"/>,</p>
+<p>Tiket <b><t t-out="object.ticket_ref"/></b> telah <b>disetujui oleh IT Administrator</b>
+   dan saat ini menunggu approval Level 2 (Heidi Lianawaty Lisan).</p>
+<p><a t-attf-href="/my/ticket/{{ object.id }}">Lihat status tiket</a></p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-05 — Administrator Rejected -->
+        <record id="mail_tpl_admin_rejected" model="mail.template">
+            <field name="name">CITE: ET-05 Administrator Rejected</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">[{{ object.ticket_ref }}] Ditolak oleh Administrator</field>
+            <field name="partner_to">{{ object.partner_id.id }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p>Yth. <t t-out="object.partner_id.name or 'Pengguna'"/>,</p>
+<p>Mohon maaf, tiket <b><t t-out="object.ticket_ref"/></b> — "<t t-out="object.name"/>"
+   <b>ditolak oleh IT Administrator</b>.</p>
+<p><b>Alasan:</b> <t t-out="object.rejection_reason or '-'"/></p>
+<p>Silakan hubungi tim IT bila membutuhkan klarifikasi.</p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-06 — Approval Request L2 (email_to diisi runtime: group Heidi) -->
+        <record id="mail_tpl_heidi_approval_request" model="mail.template">
+            <field name="name">CITE: ET-06 Approval Request L2</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">[{{ object.ticket_ref }}] Membutuhkan Approval Anda</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p>Tiket berikut telah disetujui IT Administrator dan membutuhkan
+   <b>Approval Level 2</b> Anda:</p>
+<table style="border-collapse:collapse" cellpadding="6">
+  <tr><td><b>Nomor</b></td><td>: <t t-out="object.ticket_ref"/></td></tr>
+  <tr><td><b>Subject</b></td><td>: <t t-out="object.name"/></td></tr>
+  <tr><td><b>Requester</b></td><td>: <t t-out="object.partner_id.name or '-'"/></td></tr>
+  <tr><td><b>Approver L1</b></td><td>: <t t-out="object.admin_approver_id.name or '-'"/></td></tr>
+</table>
+<p><a t-attf-href="/web#id={{ object.id }}&amp;model=helpdesk.ticket&amp;view_type=form">Review &amp; Approve/Reject</a></p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-07 — Heidi Approved -->
+        <record id="mail_tpl_heidi_approved" model="mail.template">
+            <field name="name">CITE: ET-07 Heidi Approved</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">[{{ object.ticket_ref }}] Disetujui — tiket sedang diproses</field>
+            <field name="partner_to">{{ object.partner_id.id }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p>Yth. <t t-out="object.partner_id.name or 'Pengguna'"/>,</p>
+<p>Tiket <b><t t-out="object.ticket_ref"/></b> telah <b>disetujui penuh</b>
+   dan sedang diproses oleh tim IT.</p>
+<p><a t-attf-href="/my/ticket/{{ object.id }}">Lihat status tiket</a></p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-08 — Heidi Rejected -->
+        <record id="mail_tpl_heidi_rejected" model="mail.template">
+            <field name="name">CITE: ET-08 Heidi Rejected</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">[{{ object.ticket_ref }}] Ditolak</field>
+            <field name="partner_to">{{ object.partner_id.id }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p>Yth. <t t-out="object.partner_id.name or 'Pengguna'"/>,</p>
+<p>Mohon maaf, tiket <b><t t-out="object.ticket_ref"/></b> — "<t t-out="object.name"/>"
+   <b>ditolak pada Approval Level 2</b>.</p>
+<p><b>Alasan:</b> <t t-out="object.rejection_reason or '-'"/></p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-09 — Status Changed -->
+        <record id="mail_tpl_status_changed" model="mail.template">
+            <field name="name">CITE: ET-09 Status Changed</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">[{{ object.ticket_ref }}] Status: {{ object.stage_id.name }}</field>
+            <field name="partner_to">{{ object.partner_id.id }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p>Yth. <t t-out="object.partner_id.name or 'Pengguna'"/>,</p>
+<p>Status tiket <b><t t-out="object.ticket_ref"/></b> — "<t t-out="object.name"/>"
+   kini: <b><t t-out="object.stage_id.name"/></b>.</p>
+<p><a t-attf-href="/my/ticket/{{ object.id }}">Lihat tiket</a></p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-11 — Resolved + CSAT -->
+        <record id="mail_tpl_resolved_csat" model="mail.template">
+            <field name="name">CITE: ET-11 Resolved + CSAT</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">[{{ object.ticket_ref }}] Tiket selesai — beri penilaian Anda</field>
+            <field name="partner_to">{{ object.partner_id.id }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p>Yth. <t t-out="object.partner_id.name or 'Pengguna'"/>,</p>
+<p>Tiket <b><t t-out="object.ticket_ref"/></b> — "<t t-out="object.name"/>"
+   telah <b>diselesaikan</b>.</p>
+<p><b>Resolusi:</b></p>
+<div t-out="object.resolution_notes or ''"/>
+<p>Seberapa puas Anda dengan layanan kami? Beri rating melalui
+   <a t-attf-href="/my/ticket/{{ object.id }}">halaman tiket Anda</a>.</p>
+<p>Bila masalah belum tuntas, cukup balas email ini atau buka tiket di portal —
+   tiket akan otomatis dibuka kembali. Tanpa respon, tiket akan ditutup otomatis
+   dalam 3 hari.</p>
+<p>Terima kasih,<br/>CITE Helpdesk Team</p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-12 — Closed -->
+        <record id="mail_tpl_closed" model="mail.template">
+            <field name="name">CITE: ET-12 Closed</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">[{{ object.ticket_ref }}] Tiket ditutup</field>
+            <field name="partner_to">{{ object.partner_id.id }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p>Yth. <t t-out="object.partner_id.name or 'Pengguna'"/>,</p>
+<p>Tiket <b><t t-out="object.ticket_ref"/></b> — "<t t-out="object.name"/>"
+   telah <b>ditutup</b>. Bila kendala muncul kembali, silakan buat tiket baru di
+   <a href="/citehelpdesk2">Portal CITE Helpdesk</a>.</p>
+<p>Terima kasih,<br/>CITE Helpdesk Team</p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-13 — SLA Warning 75% (email_to diisi runtime) -->
+        <record id="mail_tpl_sla_warning_75" model="mail.template">
+            <field name="name">CITE: ET-13 SLA Warning 75%</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">⚠ [{{ object.ticket_ref }}] SLA 75% terpakai</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p><b>Peringatan SLA — 75% waktu terpakai.</b></p>
+<p>Tiket <b><t t-out="object.ticket_ref"/></b> — "<t t-out="object.name"/>"
+   (Priority: <t t-out="dict(object._fields['priority'].selection).get(object.priority)"/>)</p>
+<p t-if="object.sla_deadline">Deadline SLA:
+   <b><t t-out="format_datetime(object.sla_deadline, tz=user.tz)"/></b></p>
+<p><a t-attf-href="/web#id={{ object.id }}&amp;model=helpdesk.ticket&amp;view_type=form">Tindak lanjuti sekarang</a></p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-14 — SLA Warning 90% (email_to diisi runtime: agen + manager) -->
+        <record id="mail_tpl_sla_warning_90" model="mail.template">
+            <field name="name">CITE: ET-14 SLA Warning 90%</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">🔴 [{{ object.ticket_ref }}] SLA 90% — segera tindak lanjut</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p><b>PERINGATAN SLA — 90% waktu terpakai. Risiko breach!</b></p>
+<p>Tiket <b><t t-out="object.ticket_ref"/></b> — "<t t-out="object.name"/>"
+   (Priority: <t t-out="dict(object._fields['priority'].selection).get(object.priority)"/>,
+   Agen: <t t-out="object.user_id.name or 'Belum ditugaskan'"/>)</p>
+<p t-if="object.sla_deadline">Deadline SLA:
+   <b><t t-out="format_datetime(object.sla_deadline, tz=user.tz)"/></b></p>
+<p><a t-attf-href="/web#id={{ object.id }}&amp;model=helpdesk.ticket&amp;view_type=form">Tindak lanjuti SEKARANG</a></p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-15 — SLA Breach (email_to diisi runtime: IT Manager) -->
+        <record id="mail_tpl_sla_breach" model="mail.template">
+            <field name="name">CITE: ET-15 SLA Breach</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">❌ [{{ object.ticket_ref }}] SLA BREACHED</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p><b>SLA BREACH</b> pada tiket <b><t t-out="object.ticket_ref"/></b> —
+   "<t t-out="object.name"/>".</p>
+<table style="border-collapse:collapse" cellpadding="6">
+  <tr><td><b>Priority</b></td><td>: <t t-out="dict(object._fields['priority'].selection).get(object.priority)"/></td></tr>
+  <tr><td><b>Agen</b></td><td>: <t t-out="object.user_id.name or 'Belum ditugaskan'"/></td></tr>
+  <tr><td><b>Requester</b></td><td>: <t t-out="object.partner_id.name or '-'"/></td></tr>
+  <tr><td><b>Status</b></td><td>: <t t-out="object.stage_id.name"/></td></tr>
+</table>
+<p><a t-attf-href="/web#id={{ object.id }}&amp;model=helpdesk.ticket&amp;view_type=form">Buka tiket — pertimbangkan eskalasi/reassign</a></p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-10 (New Comment) memakai notifikasi follower native Odoo —
+             requester otomatis menjadi follower tiket. -->
+    </data>
+</odoo>

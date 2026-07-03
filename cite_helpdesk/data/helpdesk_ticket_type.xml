@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- FR-03.1 — Tiga jenis tiket -->
+        <record id="helpdesk_ticket_type_incident" model="helpdesk.ticket.type">
+            <field name="name">Incident</field>
+        </record>
+        <record id="helpdesk_ticket_type_service_request" model="helpdesk.ticket.type">
+            <field name="name">Service Request</field>
+        </record>
+        <record id="helpdesk_ticket_type_access_request" model="helpdesk.ticket.type">
+            <field name="name">Access Request</field>
+        </record>
+    </data>
+</odoo>

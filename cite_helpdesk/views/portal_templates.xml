@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =========== Landing /citehelpdesk2 (Bab 24.1) =========== -->
+    <template id="portal_landing" name="CITE Helpdesk Landing">
+        <t t-call="website.layout">
+            <t t-set="page_title">CITE Helpdesk</t>
+            <div class="container py-5 o_cite_portal">
+                <div class="text-center mb-4">
+                    <h1>How Can We Support You Today?</h1>
+                    <p class="text-muted">Centralized IT assistance for software,
+                        hardware, network, and business applications.</p>
+                    <div class="mt-3">
+                        <a href="/citehelpdesk2/new" class="btn btn-primary btn-lg me-2 mb-2 w-100 w-md-auto">
+                            + Create Ticket</a>
+                        <a href="/citehelpdesk2/my-tickets" class="btn btn-outline-primary btn-lg mb-2 w-100 w-md-auto">
+                            📋 My Tickets</a>
+                    </div>
+                </div>
+
+                <h4 class="mt-5">Popular Help Categories</h4>
+                <div class="row">
+                    <t t-foreach="categories" t-as="category">
+                        <div class="col-6 col-md-3 mb-3">
+                            <a t-attf-href="/citehelpdesk2/new?category=#{category.id}"
+                               class="text-decoration-none">
+                                <div class="card h-100 text-center">
+                                    <div class="card-body">
+                                        <i t-attf-class="fa fa-2x #{category.icon or 'fa-wrench'} text-primary mb-2"/>
+                                        <div><t t-out="category.name"/></div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </t>
+                </div>
+
+                <div class="alert alert-info mt-4">
+                    <b>SLA Kami:</b> Critical 1 jam • High 2 jam •
+                    Medium 4 jam • Low 4 jam (response).<br/>
+                    <b>Emergency contact:</b> cite@aspire.id
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =========== Form Buat Tiket (Bab 12.2 / 24.2) =========== -->
+    <template id="portal_ticket_form" name="CITE Helpdesk New Ticket">
+        <t t-call="website.layout">
+            <t t-set="page_title">Create Ticket</t>
+            <div class="container py-4 o_cite_portal">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-md-8 col-lg-6">
+                        <div t-if="error" class="alert alert-danger" t-out="error"/>
+                        <form action="/citehelpdesk2/submit" method="post"
+                              enctype="multipart/form-data" id="cite_ticket_form">
+                            <input type="hidden" name="csrf_token"
+                                   t-att-value="request.csrf_token()"/>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="cite_name">Subject *</label>
+                                <input type="text" class="form-control" id="cite_name"
+                                       name="name" required="required"/>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="cite_type">Ticket Type</label>
+                                <select class="form-select" id="cite_type" name="ticket_type_id">
+                                    <option value="">-- automatic from category --</option>
+                                    <t t-foreach="ticket_types" t-as="ticket_type">
+                                        <option t-att-value="ticket_type.id"
+                                                t-out="ticket_type.name"/>
+                                    </t>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="cite_company">Company *</label>
+                                <select class="form-select" id="cite_company"
+                                        name="company_id" required="required">
+                                    <t t-foreach="companies" t-as="company">
+                                        <option t-att-value="company.id"
+                                                t-att-selected="'selected' if company == default_company else None"
+                                                t-out="company.name"/>
+                                    </t>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="cite_department">Department *</label>
+                                <select class="form-select" id="cite_department"
+                                        name="department_id" required="required">
+                                    <option value="">-- select department --</option>
+                                    <t t-foreach="departments" t-as="department">
+                                        <option t-att-value="department.id"
+                                                t-out="department.name"/>
+                                    </t>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="cite_site">Location *</label>
+                                <select class="form-select" id="cite_site"
+                                        name="site_id" required="required">
+                                    <option value="">-- select location --</option>
+                                    <t t-foreach="sites" t-as="site">
+                                        <option t-att-value="site.id"
+                                                t-out="site.name"/>
+                                    </t>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="cite_category">Category *</label>
+                                <select class="form-select" id="cite_category"
+                                        name="cite_category_id" required="required">
+                                    <option value="">-- select category --</option>
+                                    <t t-foreach="categories" t-as="category">
+                                        <option t-att-value="category.id"
+                                                t-att-selected="'selected' if selected_category and str(category.id) == selected_category else None"
+                                                t-out="category.name"/>
+                                    </t>
+                                </select>
+                            </div>
+                            <!-- Sub Category is hidden from the portal — filled by
+                                 the IT team in the backend. -->
+
+                            <div class="row">
+                                <div class="col-12 col-md-6 mb-3">
+                                    <label class="form-label" for="cite_impact">Who is affected? *</label>
+                                    <select class="form-select" id="cite_impact"
+                                            name="impact" required="required">
+                                        <option value="individual" selected="selected">Only me</option>
+                                        <option value="department">A whole department</option>
+                                        <option value="site">A whole location</option>
+                                        <option value="company">The entire company</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 col-md-6 mb-3">
+                                    <label class="form-label" for="cite_urgency">How urgent? *</label>
+                                    <select class="form-select" id="cite_urgency"
+                                            name="urgency" required="required">
+                                        <option value="single_user" selected="selected">Only I am disrupted</option>
+                                        <option value="multi_user">Several people are disrupted</option>
+                                        <option value="dept_down">A department cannot work</option>
+                                        <option value="site_down">A location is completely down</option>
+                                        <option value="request">Routine request (not urgent)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="cite_description">Description *</label>
+                                <textarea class="form-control" id="cite_description"
+                                          name="description" rows="8" required="required"
+                                          placeholder="Describe the issue/request, conditions, and what you have already tried..."/>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="cite_attachments">
+                                    📎 Attachments (images/documents, max 5 files, 25MB each)</label>
+                                <input type="file" class="form-control" id="cite_attachments"
+                                       name="attachments" multiple="multiple"/>
+                                <div class="form-text">Attachments will appear in your
+                                    ticket's comment section.</div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">
+                                Submit Ticket</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =========== My Tickets (khusus CITE Helpdesk) =========== -->
+    <template id="portal_my_tickets" name="CITE My Tickets">
+        <t t-call="website.layout">
+            <t t-set="page_title">My Tickets</t>
+            <div class="container py-4 o_cite_portal">
+                <div class="d-flex align-items-center mb-3">
+                    <h3 class="me-auto mb-0">My Tickets</h3>
+                    <a href="/citehelpdesk2/new" class="btn btn-primary">
+                        + Create Ticket</a>
+                </div>
+
+                <div t-if="not tickets" class="alert alert-info">
+                    You have no tickets yet.
+                    <a href="/citehelpdesk2/new">Create your first ticket</a>.
+                </div>
+
+                <div t-if="tickets" class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Ticket</th><th>Subject</th><th>Date</th>
+                                <th>Status</th><th>Approval</th><th>Priority</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="tickets" t-as="ticket">
+                                <td>
+                                    <a t-attf-href="/citehelpdesk2/ticket/#{ticket.id}">
+                                        <t t-out="ticket.ticket_ref or ('#%s' % ticket.id)"/>
+                                    </a>
+                                </td>
+                                <td><t t-out="ticket.name"/></td>
+                                <td><t t-out="ticket.create_date" t-options="{'widget': 'date'}"/></td>
+                                <td>
+                                    <span class="badge text-bg-secondary"
+                                          t-out="ticket.stage_id.name"/>
+                                </td>
+                                <td>
+                                    <span t-if="ticket.approval_status != 'not_required'"
+                                          t-attf-class="badge #{'text-bg-success' if ticket.approval_status == 'fully_approved' else 'text-bg-danger' if ticket.approval_status == 'rejected' else 'text-bg-warning'}"
+                                          t-out="dict(ticket._fields['approval_status'].selection).get(ticket.approval_status)"/>
+                                    <span t-else="" class="text-muted">—</span>
+                                </td>
+                                <td t-out="dict(ticket._fields['priority'].selection).get(ticket.priority)"/>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =========== Detail tiket — halaman MILIK CITE (ter-namespace) =========== -->
+    <template id="portal_cite_ticket" name="CITE Ticket Detail">
+        <t t-call="website.layout">
+            <t t-set="page_title">Ticket <t t-out="ticket.ticket_ref or ticket.id"/></t>
+            <div class="container py-4 o_cite_portal">
+                <a href="/citehelpdesk2/my-tickets"
+                   class="text-decoration-none">&#8592; Back to My Tickets</a>
+
+                <div t-if="error" class="alert alert-danger mt-3" t-out="error"/>
+
+                <div class="d-flex align-items-center mt-2 mb-3 flex-wrap">
+                    <h3 class="me-auto mb-0">
+                        <t t-out="ticket.ticket_ref or ('#%s' % ticket.id)"/> —
+                        <t t-out="ticket.name"/>
+                    </h3>
+                    <span class="badge text-bg-secondary fs-6"
+                          t-out="ticket.stage_id.name"/>
+                </div>
+
+                <!-- Detail -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <small class="text-muted">Category</small><br/>
+                                <t t-out="ticket.cite_category_id.name or '-'"/>
+                                <t t-if="ticket.cite_subcategory_id">
+                                    / <t t-out="ticket.cite_subcategory_id.name"/>
+                                </t>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <small class="text-muted">Priority</small><br/>
+                                <t t-out="dict(ticket._fields['priority'].selection).get(ticket.priority)"/>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <small class="text-muted">Location</small><br/>
+                                <t t-out="ticket.site_id.name or '-'"/>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <small class="text-muted">Company</small><br/>
+                                <t t-out="ticket.company_id.name or '-'"/>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <small class="text-muted">Requester</small><br/>
+                                <t t-out="ticket.partner_id.name or '-'"/>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <small class="text-muted">Created</small><br/>
+                                <t t-out="ticket.create_date" t-options="{'widget': 'datetime'}"/>
+                            </div>
+                        </div>
+                        <hr/>
+                        <small class="text-muted">Description</small>
+                        <div t-out="ticket.description"/>
+                    </div>
+                </div>
+
+                <!-- Approval status (2 level) -->
+                <div t-if="ticket.approval_status != 'not_required'" class="card mb-3">
+                    <div class="card-header"><b>Approval Status</b></div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-2">
+                                <small class="text-muted">Level 1 — IT Administrator</small><br/>
+                                <span t-attf-class="badge #{'text-bg-success' if ticket.admin_approval_status == 'approved' else 'text-bg-danger' if ticket.admin_approval_status == 'rejected' else 'text-bg-warning'}">
+                                    <t t-out="dict(ticket._fields['admin_approval_status'].selection).get(ticket.admin_approval_status)"/>
+                                </span>
+                            </div>
+                            <div class="col-12 col-md-6 mb-2">
+                                <small class="text-muted">Level 2 — Heidi Lianawaty Lisan</small><br/>
+                                <span t-attf-class="badge #{'text-bg-success' if ticket.heidi_approval_status == 'approved' else 'text-bg-danger' if ticket.heidi_approval_status == 'rejected' else 'text-bg-warning'}">
+                                    <t t-out="dict(ticket._fields['heidi_approval_status'].selection).get(ticket.heidi_approval_status)"/>
+                                </span>
+                            </div>
+                        </div>
+                        <div t-if="ticket.rejection_reason" class="alert alert-danger mb-0 mt-2">
+                            <b>Rejection reason:</b> <t t-out="ticket.rejection_reason"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Percakapan -->
+                <div class="card mb-3">
+                    <div class="card-header"><b>Conversation</b></div>
+                    <div class="card-body">
+                        <div t-if="not messages" class="text-muted">No messages yet.</div>
+                        <div t-foreach="messages" t-as="message"
+                             class="mb-3 pb-2 border-bottom">
+                            <div class="d-flex">
+                                <b t-out="message.author_id.name or 'System'"/>
+                                <span class="text-muted ms-auto small"
+                                      t-out="message.date" t-options="{'widget': 'datetime'}"/>
+                            </div>
+                            <div t-out="message.body"/>
+                            <div t-if="message.attachment_ids" class="mt-1">
+                                <a t-foreach="message.attachment_ids" t-as="att"
+                                   t-attf-href="/web/content/#{att.id}?download=true"
+                                   class="badge text-bg-light text-decoration-none me-1">
+                                    📎 <t t-out="att.name"/>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form balas -->
+                <div t-if="ticket.stage_id.is_close" class="alert alert-secondary">
+                    This ticket is closed. Need help again? Please
+                    <a href="/citehelpdesk2/new">create a new ticket</a>.
+                </div>
+                <form t-else="" t-attf-action="/citehelpdesk2/ticket/#{ticket.id}/reply"
+                      method="post" enctype="multipart/form-data" class="card">
+                    <div class="card-body">
+                        <input type="hidden" name="csrf_token"
+                               t-att-value="request.csrf_token()"/>
+                        <label class="form-label" for="cite_reply">Reply</label>
+                        <textarea class="form-control mb-2" id="cite_reply"
+                                  name="message" rows="3"
+                                  placeholder="Write a message to the IT team..."/>
+                        <input type="file" class="form-control mb-2"
+                               name="attachments" multiple="multiple"/>
+                        <button type="submit" class="btn btn-primary">Send Reply</button>
+                    </div>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <!-- =========== Approval status di detail tiket portal (Bab 12.4) ===========
+         Catatan: anchor xpath sengaja generik (t-call portal_layout) agar tahan
+         terhadap perbedaan struktur internal template enterprise antar build. -->
+    <template id="portal_ticket_approval_status" name="CITE Ticket Approval Status"
+              inherit_id="helpdesk.tickets_followup">
+        <xpath expr="//t[@t-call='portal.portal_layout']" position="inside">
+            <div t-if="ticket.approval_status != 'not_required'"
+                 class="container mt-3 o_cite_portal">
+                <div class="card">
+                    <div class="card-header"><b>Approval Status</b></div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-2">
+                                <small class="text-muted">Level 1 — IT Administrator</small><br/>
+                                <span t-attf-class="badge #{'text-bg-success' if ticket.admin_approval_status == 'approved' else 'text-bg-danger' if ticket.admin_approval_status == 'rejected' else 'text-bg-warning'}">
+                                    <t t-out="dict(ticket._fields['admin_approval_status'].selection).get(ticket.admin_approval_status)"/>
+                                </span>
+                            </div>
+                            <div class="col-12 col-md-6 mb-2">
+                                <small class="text-muted">Level 2 — Heidi Lianawaty Lisan</small><br/>
+                                <span t-attf-class="badge #{'text-bg-success' if ticket.heidi_approval_status == 'approved' else 'text-bg-danger' if ticket.heidi_approval_status == 'rejected' else 'text-bg-warning'}">
+                                    <t t-out="dict(ticket._fields['heidi_approval_status'].selection).get(ticket.heidi_approval_status)"/>
+                                </span>
+                            </div>
+                        </div>
+                        <div t-if="ticket.rejection_reason" class="alert alert-danger mb-0 mt-2">
+                            <b>Rejection reason:</b> <t t-out="ticket.rejection_reason"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

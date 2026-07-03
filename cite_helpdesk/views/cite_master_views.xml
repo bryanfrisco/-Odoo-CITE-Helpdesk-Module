@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============ cite.site ============ -->
+    <record id="view_cite_site_tree" model="ir.ui.view">
+        <field name="name">cite.site.tree</field>
+        <field name="model">cite.site</field>
+        <field name="arch" type="xml">
+            <tree string="Sites">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="site_type"/>
+                <field name="company_id"/>
+                <field name="ticket_count" string="Tickets"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_cite_site_form" model="ir.ui.view">
+        <field name="name">cite.site.form</field>
+        <field name="model">cite.site</field>
+        <field name="arch" type="xml">
+            <form string="Site">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_tickets" type="object"
+                                class="oe_stat_button" icon="fa-life-ring">
+                            <field name="ticket_count" widget="statinfo" string="Tickets"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="site_type"/>
+                        </group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Address">
+                        <field name="address" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_cite_sites" model="ir.actions.act_window">
+        <field name="name">Sites</field>
+        <field name="res_model">cite.site</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ============ cite.category ============ -->
+    <record id="view_cite_category_tree" model="ir.ui.view">
+        <field name="name">cite.category.tree</field>
+        <field name="model">cite.category</field>
+        <field name="arch" type="xml">
+            <tree string="Categories">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="require_approval"/>
+                <field name="ticket_type_id"/>
+                <field name="default_team_id"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_cite_category_form" model="ir.ui.view">
+        <field name="name">cite.category.form</field>
+        <field name="model">cite.category</field>
+        <field name="arch" type="xml">
+            <form string="Category">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="sequence"/>
+                            <field name="icon" placeholder="fa-server"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="require_approval"/>
+                            <field name="ticket_type_id"/>
+                            <field name="default_team_id"/>
+                            <field name="knowledge_tag"/>
+                        </group>
+                    </group>
+                    <group string="Sub Categories">
+                        <field name="subcategory_ids" nolabel="1">
+                            <tree editable="bottom">
+                                <field name="sequence" widget="handle"/>
+                                <field name="name"/>
+                                <field name="require_approval"
+                                       string="Override Approval"/>
+                                <field name="active"/>
+                            </tree>
+                        </field>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_cite_categories" model="ir.actions.act_window">
+        <field name="name">Categories</field>
+        <field name="res_model">cite.category</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ============ cite.subcategory ============ -->
+    <record id="view_cite_subcategory_tree" model="ir.ui.view">
+        <field name="name">cite.subcategory.tree</field>
+        <field name="model">cite.subcategory</field>
+        <field name="arch" type="xml">
+            <tree string="Sub Categories" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="category_id"/>
+                <field name="name"/>
+                <field name="require_approval" string="Override Approval"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_cite_subcategories" model="ir.actions.act_window">
+        <field name="name">Sub Categories</field>
+        <field name="res_model">cite.subcategory</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+</odoo>

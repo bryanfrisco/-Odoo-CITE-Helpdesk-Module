@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Bab 20.2 — 8 SLA policies. "time" = jam kerja kalender team
+             (8 jam = 1 hari kerja). Waiting User dikecualikan (SLA pause).
+             CATATAN: file ini noupdate=1; perubahan nilai pada DB yang sudah
+             terinstall diterapkan lewat migrations/17.0.1.2.0/post-migrate.py. -->
+
+        <!-- Response SLA: target reach stage In Progress -->
+        <record id="sla_resp_crit" model="helpdesk.sla">
+            <field name="name">SLA-RESP-CRIT — Response Critical (1 jam)</field>
+            <field name="team_id" ref="helpdesk_team_cite"/>
+            <field name="priority">3</field>
+            <field name="stage_id" ref="stage_in_progress"/>
+            <field name="time">1</field>
+            <field name="exclude_stage_ids" eval="[(6, 0, [ref('stage_waiting_user')])]"/>
+        </record>
+        <record id="sla_resp_high" model="helpdesk.sla">
+            <field name="name">SLA-RESP-HIGH — Response High (2 jam)</field>
+            <field name="team_id" ref="helpdesk_team_cite"/>
+            <field name="priority">2</field>
+            <field name="stage_id" ref="stage_in_progress"/>
+            <field name="time">2</field>
+            <field name="exclude_stage_ids" eval="[(6, 0, [ref('stage_waiting_user')])]"/>
+        </record>
+        <record id="sla_resp_med" model="helpdesk.sla">
+            <field name="name">SLA-RESP-MED — Response Medium (4 jam)</field>
+            <field name="team_id" ref="helpdesk_team_cite"/>
+            <field name="priority">1</field>
+            <field name="stage_id" ref="stage_in_progress"/>
+            <field name="time">4</field>
+            <field name="exclude_stage_ids" eval="[(6, 0, [ref('stage_waiting_user')])]"/>
+        </record>
+        <record id="sla_resp_low" model="helpdesk.sla">
+            <field name="name">SLA-RESP-LOW — Response Low (4 jam)</field>
+            <field name="team_id" ref="helpdesk_team_cite"/>
+            <field name="priority">0</field>
+            <field name="stage_id" ref="stage_in_progress"/>
+            <field name="time">4</field>
+            <field name="exclude_stage_ids" eval="[(6, 0, [ref('stage_waiting_user')])]"/>
+        </record>
+
+        <!-- Resolution SLA: target reach stage Resolved -->
+        <record id="sla_reso_crit" model="helpdesk.sla">
+            <field name="name">SLA-RESO-CRIT — Resolution Critical (3 hari)</field>
+            <field name="team_id" ref="helpdesk_team_cite"/>
+            <field name="priority">3</field>
+            <field name="stage_id" ref="stage_resolved"/>
+            <field name="time">24</field>
+            <field name="exclude_stage_ids" eval="[(6, 0, [ref('stage_waiting_user')])]"/>
+        </record>
+        <record id="sla_reso_high" model="helpdesk.sla">
+            <field name="name">SLA-RESO-HIGH — Resolution High (4 hari)</field>
+            <field name="team_id" ref="helpdesk_team_cite"/>
+            <field name="priority">2</field>
+            <field name="stage_id" ref="stage_resolved"/>
+            <field name="time">32</field>
+            <field name="exclude_stage_ids" eval="[(6, 0, [ref('stage_waiting_user')])]"/>
+        </record>
+        <record id="sla_reso_med" model="helpdesk.sla">
+            <field name="name">SLA-RESO-MED — Resolution Medium (5 hari)</field>
+            <field name="team_id" ref="helpdesk_team_cite"/>
+            <field name="priority">1</field>
+            <field name="stage_id" ref="stage_resolved"/>
+            <field name="time">40</field>
+            <field name="exclude_stage_ids" eval="[(6, 0, [ref('stage_waiting_user')])]"/>
+        </record>
+        <record id="sla_reso_low" model="helpdesk.sla">
+            <field name="name">SLA-RESO-LOW — Resolution Low (5 hari)</field>
+            <field name="team_id" ref="helpdesk_team_cite"/>
+            <field name="priority">0</field>
+            <field name="stage_id" ref="stage_resolved"/>
+            <field name="time">40</field>
+            <field name="exclude_stage_ids" eval="[(6, 0, [ref('stage_waiting_user')])]"/>
+        </record>
+    </data>
+</odoo>

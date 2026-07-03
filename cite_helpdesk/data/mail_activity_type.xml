@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="mail_act_admin_approval" model="mail.activity.type">
+            <field name="name">CITE: Administrator Approval</field>
+            <field name="summary">Review &amp; approve tiket (Level 1)</field>
+            <field name="res_model">helpdesk.ticket</field>
+            <field name="category">default</field>
+            <field name="delay_count">1</field>
+            <field name="delay_unit">days</field>
+        </record>
+        <record id="mail_act_heidi_approval" model="mail.activity.type">
+            <field name="name">CITE: Heidi Approval</field>
+            <field name="summary">Review &amp; approve tiket (Level 2)</field>
+            <field name="res_model">helpdesk.ticket</field>
+            <field name="category">default</field>
+            <field name="delay_count">1</field>
+            <field name="delay_unit">days</field>
+        </record>
+    </data>
+</odoo>

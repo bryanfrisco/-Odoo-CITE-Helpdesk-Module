@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="cite_helpdesk.Dashboard">
+    <div class="o_cite_dashboard o_action p-3 h-100 overflow-auto" t-if="state.data">
+
+        <!-- Header -->
+        <div class="d-flex flex-wrap align-items-center mb-3">
+            <div class="me-auto">
+                <h2 class="mb-0">CITE Helpdesk Overview</h2>
+                <div class="text-muted">Real-time overview of IT ticket performance and status</div>
+            </div>
+            <span class="badge text-bg-light border me-2">
+                <i class="fa fa-refresh me-1"/>Auto refresh every 60 seconds
+            </span>
+            <span class="badge text-bg-light border me-2">
+                <i class="fa fa-clock-o me-1"/>Last Updated: <t t-out="state.data.last_update"/>
+            </span>
+            <button class="btn btn-light border" t-on-click="refresh" title="Refresh">
+                <i class="fa fa-refresh"/>
+            </button>
+        </div>
+
+        <!-- KPI cards -->
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="card o_cite_kpi h-100" t-on-click="() => this.openDomain('total_open', 'All Open Tickets')">
+                    <div class="card-body d-flex align-items-center">
+                        <span class="o_cite_kpi_icon" style="background:#875A7B"><i class="fa fa-ticket"/></span>
+                        <div class="ms-3">
+                            <div class="o_cite_kpi_label">TOTAL OPEN</div>
+                            <div class="o_cite_kpi_value" t-out="state.data.kpis.total_open"/>
+                            <div class="text-muted small">All open tickets</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="card o_cite_kpi h-100" t-on-click="() => this.openDomain('need_response', 'Need Response')">
+                    <div class="card-body d-flex align-items-center">
+                        <span class="o_cite_kpi_icon" style="background:#ea8b35"><i class="fa fa-comments"/></span>
+                        <div class="ms-3">
+                            <div class="o_cite_kpi_label">NEED RESPONSE</div>
+                            <div class="o_cite_kpi_value" t-out="state.data.kpis.need_response"/>
+                            <div class="text-muted small">Waiting for IT response</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="card o_cite_kpi h-100" t-on-click="() => this.openDomain('on_progress', 'On Progress')">
+                    <div class="card-body d-flex align-items-center">
+                        <span class="o_cite_kpi_icon" style="background:#4285f4"><i class="fa fa-refresh"/></span>
+                        <div class="ms-3">
+                            <div class="o_cite_kpi_label">ON PROGRESS</div>
+                            <div class="o_cite_kpi_value" t-out="state.data.kpis.on_progress"/>
+                            <div class="text-muted small">Currently being handled</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="card o_cite_kpi h-100" t-on-click="() => this.openDomain('almost_overdue', 'Almost Overdue')">
+                    <div class="card-body d-flex align-items-center">
+                        <span class="o_cite_kpi_icon" style="background:#fbbc05"><i class="fa fa-clock-o"/></span>
+                        <div class="ms-3">
+                            <div class="o_cite_kpi_label">ALMOST OVERDUE</div>
+                            <div class="o_cite_kpi_value" t-out="state.data.kpis.almost_overdue"/>
+                            <div class="text-muted small">SLA due soon</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="card o_cite_kpi h-100" t-on-click="() => this.openDomain('overdue', 'Overdue')">
+                    <div class="card-body d-flex align-items-center">
+                        <span class="o_cite_kpi_icon" style="background:#ea4335"><i class="fa fa-exclamation-triangle"/></span>
+                        <div class="ms-3">
+                            <div class="o_cite_kpi_label">OVERDUE</div>
+                            <div class="o_cite_kpi_value" t-out="state.data.kpis.overdue"/>
+                            <div class="text-muted small">SLA deadline passed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="card o_cite_kpi h-100" t-on-click="() => this.openDomain('solved_today', 'Solved Today')">
+                    <div class="card-body d-flex align-items-center">
+                        <span class="o_cite_kpi_icon" style="background:#34a853"><i class="fa fa-check"/></span>
+                        <div class="ms-3">
+                            <div class="o_cite_kpi_label">SOLVED TODAY</div>
+                            <div class="o_cite_kpi_value" t-out="state.data.kpis.solved_today"/>
+                            <div class="text-muted small">Resolved today</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabel operasional -->
+        <div class="row g-3 mt-0">
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex bg-white">
+                        <b><i class="fa fa-comments me-1"/>Need Response</b>
+                        <a href="#" class="ms-auto" t-on-click.prevent="() => this.openDomain('need_response', 'Need Response')">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0 o_cite_table">
+                            <thead><tr><th>Ticket</th><th>Subject</th><th>Requester</th><th>Age</th><th>Priority</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="state.data.need_response" t-as="row" t-key="row.id"
+                                    class="o_cite_row" t-on-click="() => this.openTicket(row.id)">
+                                    <td t-out="row.ref"/>
+                                    <td class="text-truncate o_cite_subject" t-out="row.name"/>
+                                    <td t-out="row.requester"/>
+                                    <td t-out="row.age"/>
+                                    <td><span t-attf-class="badge o_cite_prio_{{row.priority_code}}" t-out="row.priority"/></td>
+                                </tr>
+                                <tr t-if="!state.data.need_response.length">
+                                    <td colspan="5" class="text-muted">No tickets need response.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex bg-white">
+                        <b><i class="fa fa-clock-o me-1"/>Almost Overdue</b>
+                        <a href="#" class="ms-auto" t-on-click.prevent="() => this.openDomain('almost_overdue', 'Almost Overdue')">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0 o_cite_table">
+                            <thead><tr><th>Ticket</th><th>Subject</th><th>Assignee</th><th>Deadline</th><th>Remaining</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="state.data.almost_overdue" t-as="row" t-key="row.id"
+                                    class="o_cite_row" t-on-click="() => this.openTicket(row.id)">
+                                    <td t-out="row.ref"/>
+                                    <td class="text-truncate o_cite_subject" t-out="row.name"/>
+                                    <td t-out="row.assignee"/>
+                                    <td t-out="row.deadline"/>
+                                    <td t-out="row.remaining"/>
+                                </tr>
+                                <tr t-if="!state.data.almost_overdue.length">
+                                    <td colspan="5" class="text-muted">No almost overdue tickets.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex bg-white">
+                        <b class="text-danger"><i class="fa fa-exclamation-triangle me-1"/>Overdue</b>
+                        <a href="#" class="ms-auto" t-on-click.prevent="() => this.openDomain('overdue', 'Overdue')">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0 o_cite_table">
+                            <thead><tr><th>Ticket</th><th>Subject</th><th>Assignee</th><th>Deadline</th><th>Overdue</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="state.data.overdue" t-as="row" t-key="row.id"
+                                    class="o_cite_row" t-on-click="() => this.openTicket(row.id)">
+                                    <td t-out="row.ref"/>
+                                    <td class="text-truncate o_cite_subject" t-out="row.name"/>
+                                    <td t-out="row.assignee"/>
+                                    <td t-out="row.deadline"/>
+                                    <td class="text-danger" t-out="row.overdue"/>
+                                </tr>
+                                <tr t-if="!state.data.overdue.length">
+                                    <td colspan="5" class="text-muted">No overdue tickets.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts & ringkasan -->
+        <div class="row g-3 mt-0 mb-3">
+            <div class="col-lg-3">
+                <div class="card h-100">
+                    <div class="card-header bg-white"><b>Tickets by Status</b></div>
+                    <div class="card-body o_cite_chart_body">
+                        <canvas t-ref="statusCanvas"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex bg-white">
+                        <b>Tickets Trend</b>
+                        <span class="ms-auto text-muted">Last 14 Days</span>
+                    </div>
+                    <div class="card-body o_cite_chart_body">
+                        <canvas t-ref="trendCanvas"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="card h-100">
+                    <div class="card-header d-flex bg-white">
+                        <b>Top Ticket Solvers</b>
+                        <span class="ms-auto text-muted">This Month</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0 o_cite_table">
+                            <thead><tr><th>#</th><th>Solver</th><th>Solved</th><th>Avg Resolve</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="state.data.top_solvers" t-as="row" t-key="row_index">
+                                    <td t-out="row_index + 1"/>
+                                    <td t-out="row.name"/>
+                                    <td t-out="row.solved"/>
+                                    <td t-out="row.avg"/>
+                                </tr>
+                                <tr t-if="!state.data.top_solvers.length">
+                                    <td colspan="4" class="text-muted">No resolved tickets this month.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2">
+                <div class="card h-100">
+                    <div class="card-header d-flex align-items-center bg-white">
+                        <b>SLA Compliance</b>
+                        <select class="form-select form-select-sm w-auto ms-auto"
+                                t-on-change="onSlaPeriodChange">
+                            <option value="day" t-att-selected="state.slaPeriod === 'day'">This Day</option>
+                            <option value="week" t-att-selected="state.slaPeriod === 'week'">This Week</option>
+                            <option value="month" t-att-selected="state.slaPeriod === 'month'">This Month</option>
+                            <option value="year" t-att-selected="state.slaPeriod === 'year'">This Year</option>
+                        </select>
+                    </div>
+                    <div class="card-body d-flex flex-column align-items-center justify-content-around">
+                        <div class="text-center">
+                            <div class="small text-muted mb-1">Response SLA</div>
+                            <div class="o_cite_gauge"
+                                 t-attf-style="background: conic-gradient(#34a853 {{ (state.data.sla.response or 0) }}%, #e9ecef 0);">
+                                <div class="o_cite_gauge_inner">
+                                    <t t-if="state.data.sla.response !== null"><t t-out="state.data.sla.response"/>%</t>
+                                    <t t-else="">—</t>
+                                </div>
+                            </div>
+                            <div class="small text-muted mt-1">Achieved</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="small text-muted mb-1">Resolution SLA</div>
+                            <div class="o_cite_gauge"
+                                 t-attf-style="background: conic-gradient(#34a853 {{ (state.data.sla.resolution or 0) }}%, #e9ecef 0);">
+                                <div class="o_cite_gauge_inner">
+                                    <t t-if="state.data.sla.resolution !== null"><t t-out="state.data.sla.resolution"/>%</t>
+                                    <t t-else="">—</t>
+                                </div>
+                            </div>
+                            <div class="small text-muted mt-1">Achieved</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</t>
+
+</templates>

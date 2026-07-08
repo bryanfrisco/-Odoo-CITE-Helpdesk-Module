@@ -176,7 +176,13 @@ helpdesk) bocor/bentrok dengan helpdesk Stargo. Sudah diperbaiki:
   departemen dari employee dihapus (dipilih manual);
   **1.4.1** = **dashboard Overview kini mengikuti company switcher** — centang 1
   company hanya menampilkan tiket company itu (override `allowed_company_ids`
-  dihapus; gauge SLA difilter `ticket_id.company_id` agar konsisten).
+  dihapus; gauge SLA difilter `ticket_id.company_id` agar konsisten);
+  **1.4.2** = **fix tiket hilang saat company tim tidak dicentang** — domain
+  `team_id.cite_team` diganti flag tersimpan `cite_ticket` di tiket (traversal
+  domain memicu record rule multi-company `helpdesk.team`; tim ber-company RSL
+  "hilang" saat hanya SPR/SMA dicentang sehingga semua tiket CITE ikut lenyap
+  dari Tickets & Overview). Terverifikasi lokal lintas kombinasi centang;
+  16/16 test lulus.
 
 > Diverifikasi end-to-end via HTTP lokal: submit → `/citehelpdesk2/ticket/<id>` (bukan /my),
 > My Tickets memuat tiket & link benar, halaman detail + balas berfungsi, ikon & filter tim benar.

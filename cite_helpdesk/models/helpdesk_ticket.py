@@ -74,7 +74,7 @@ DEFAULT_DESCRIPTION = """
 <p><strong>Sudah dicoba:</strong></p>
 <ul><li>...</li></ul>
 """
-
+ 
 
 class HelpdeskTicket(models.Model):
     _inherit = "helpdesk.ticket"
@@ -174,6 +174,14 @@ class HelpdeskTicket(models.Model):
     sla_breach_sent = fields.Boolean(copy=False)
 
     # --- Helper untuk view & guard ---
+    # Flag CITE disimpan di tiket (bukan traversal team_id.cite_team di domain):
+    # traversal memicu record rule multi-company helpdesk.team
+    # [('company_id','in',company_ids)] — saat company tim (RSL) tidak dicentang
+    # di switcher, tim "hilang" dan SEMUA tiket CITE ikut lenyap dari
+    # action/dashboard walau company tiketnya dicentang. Flag tersimpan ini
+    # dievaluasi langsung di tabel tiket sehingga bebas dari rule tim.
+    cite_ticket = fields.Boolean(
+        related="team_id.cite_team", store=True, string="CITE Ticket")
     cite_stage_code = fields.Char(
         compute="_compute_cite_stage_code", store=True, string="Stage Code")
     stage_is_locked = fields.Boolean(compute="_compute_stage_is_locked")
@@ -368,7 +376,8 @@ class HelpdeskTicket(models.Model):
         # Tiket CITE = shared-service grup: requester boleh berasal dari company
         # berbeda dengan company tiket (mis. melapor untuk site company lain).
         # Lewati constraint native hanya untuk tim CITE; tim lain tetap dicek.
-        others = self.filtered(lambda t: not t.team_id.cite_team)
+        # (pakai flag cite_ticket — baca team_id langsung bisa kena rule tim)
+        others = self.filtered(lambda t: not t.cite_ticket)
         if others:
             super(HelpdeskTicket, others)._check_partner_id_has_the_same_company()
 
@@ -654,7 +663,7 @@ class HelpdeskTicket(models.Model):
         """AA-09/10/11 — SLA warning 75%, 90%, dan breach alert."""
         now = fields.Datetime.now()
         tickets = self.search([
-            ("team_id.cite_team", "=", True),
+            ("cite_ticket", "=", True),
             ("stage_id.is_close", "=", False),
             ("sla_status_ids", "!=", False),
         ])
@@ -706,7 +715,7 @@ class HelpdeskTicket(models.Model):
         """AA-12 — reminder approval pending > 24 jam."""
         limit = fields.Datetime.now() - timedelta(hours=24)
         pending_admin = self.search([
-            ("team_id.cite_team", "=", True),
+            ("cite_ticket", "=", True),
             ("admin_approval_status", "=", "pending"),
             ("create_date", "<=", limit),
         ])
@@ -714,7 +723,7 @@ class HelpdeskTicket(models.Model):
         pending_admin._notify_cite_mailbox(
             "cite_helpdesk.mail_tpl_admin_approval_request")
         pending_heidi = self.search([
-            ("team_id.cite_team", "=", True),
+            ("cite_ticket", "=", True),
             ("heidi_approval_status", "=", "pending"),
             ("admin_approval_date", "<=", limit),
         ])
@@ -793,7 +802,7 @@ class HelpdeskTicket(models.Model):
         }
         # Batasi SELURUH data dashboard ke tiket tim CITE saja (pisah dari
         # helpdesk lain/Stargo di DB yang sama). Leaf di-AND otomatis di depan.
-        cite_leaf = ("team_id.cite_team", "=", True)
+        cite_leaf = ("cite_ticket", "=", True)
         domains = {key: [cite_leaf] + domain for key, domain in domains.items()}
         kpis = {key: self.search_count(domain)
                 for key, domain in domains.items()}
@@ -923,7 +932,7 @@ class HelpdeskTicket(models.Model):
         # helpdesk.sla.status tak punya record rule company -> filter manual ke
         # company yang dicentang di switcher agar gauge konsisten dgn KPI dashboard.
         for sla_status in self.env["helpdesk.sla.status"].search(
-                [("ticket_id.team_id.cite_team", "=", True),
+                [("ticket_id.cite_ticket", "=", True),
                  ("ticket_id.company_id", "in", self.env.companies.ids),
                  ("ticket_id.create_date", ">=", start)]):
             kind = ("response"

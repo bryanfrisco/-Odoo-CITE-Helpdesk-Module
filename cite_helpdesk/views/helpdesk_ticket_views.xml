@@ -291,7 +291,7 @@
         <field name="view_mode">kanban,tree,form,activity,pivot,graph</field>
         <field name="search_view_id" ref="view_cite_ticket_search"/>
         <!-- Hanya tiket tim CITE — cegah tiket helpdesk lain (Stargo) bocor ke sini. -->
-        <field name="domain">[('team_id.cite_team', '=', True)]</field>
+        <field name="domain">[('cite_ticket', '=', True)]</field>
         <field name="context" eval="{'search_default_open_states': 1,
                                      'default_team_id': ref('helpdesk_team_cite')}"/>
         <field name="help" type="html">
@@ -323,7 +323,7 @@
         <field name="name">Approval Waiting List</field>
         <field name="res_model">helpdesk.ticket</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[('approval_status', '=', 'in_review'), ('team_id.cite_team', '=', True)]</field>
+        <field name="domain">[('approval_status', '=', 'in_review'), ('cite_ticket', '=', True)]</field>
         <field name="view_id" ref="view_cite_ticket_tree"/>
         <field name="search_view_id" ref="view_cite_ticket_search"/>
     </record>
@@ -332,7 +332,7 @@
         <field name="name">SLA Breached</field>
         <field name="res_model">helpdesk.ticket</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[('sla_fail', '=', True), ('team_id.cite_team', '=', True)]</field>
+        <field name="domain">[('sla_fail', '=', True), ('cite_ticket', '=', True)]</field>
         <field name="view_id" ref="view_cite_ticket_tree"/>
         <field name="search_view_id" ref="view_cite_ticket_search"/>
     </record>

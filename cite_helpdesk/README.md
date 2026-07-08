@@ -5,7 +5,7 @@ Prinsip: **native-first** (Helpdesk, Maintenance, Rating, Portal) + custom ringa
 4 area yang tidak tersedia native: ticket numbering, auto-priority matrix, double
 approval, dan SLA warning 75%/90%.
 
-**Versi:** 17.0.1.4.1.
+**Versi:** 17.0.1.4.2.
 
 > **Multi-company:** satu tim CITE melayani 3 company. `company_id` tiket di-override
 > menjadi field biasa (native helpdesk memaksa `related='team_id.company_id'` readonly),
@@ -13,6 +13,11 @@ approval, dan SLA warning 75%/90%.
 > partner-company native di-relax khusus tim CITE. **Dashboard Overview mengikuti
 > company switcher**: centang 1 company → hanya tiket company itu; centang beberapa →
 > gabungan (record rule native + filter `ticket_id.company_id` pada gauge SLA).
+> Filter CITE memakai flag tersimpan `cite_ticket` (related `team_id.cite_team`,
+> store) — **bukan** traversal `team_id.cite_team` di domain, karena traversal
+> memicu record rule multi-company `helpdesk.team`: saat company tim tidak
+> dicentang di switcher, tim "hilang" dan semua tiket CITE ikut lenyap walau
+> company tiketnya dicentang.
 > Catatan data: tiket yang dibuat **sebelum** fix 1.3.1 menyimpan company lama
 > (company tim) — muncul hanya bila company tsb dicentang; tiket baru mengikuti
 > pilihan company di portal.

@@ -269,7 +269,7 @@ class CiteHelpdeskNativeSeparation(HelpdeskCustomerPortal):
     def _prepare_helpdesk_tickets_domain(self):
         domain = super()._prepare_helpdesk_tickets_domain()
         # Hanya tiket NON-CITE yang tampil di portal helpdesk bawaan.
-        return domain + [("team_id.cite_team", "=", False)]
+        return domain + [("cite_ticket", "=", False)]
 
     @http.route([
         "/helpdesk/ticket/<int:ticket_id>",

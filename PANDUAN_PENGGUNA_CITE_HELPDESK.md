@@ -144,6 +144,12 @@ Langkah demi langkah:
 
 Hanya untuk **IT Administrator** (Level 1) dan **Heidi Lianawaty Lisan** (Level 2).
 
+> ⚠️ **Wajib dicek sebelum mulai kerja:** di pojok kanan atas, pastikan
+> **ketiga company** (PT Stargate Pasific Resources, PT Stargate Mineral Asia,
+> PT Rajawali Sigi Lestari) **dicentang** di company switcher. Tiket yang
+> company-nya tidak dicentang **tidak akan terlihat sama sekali** — ini
+> perlindungan data multi-company bawaan Odoo, bukan gangguan sistem.
+
 ## 3.1 Kapan Approval Muncul?
 Approval otomatis aktif untuk kategori: **Access**, **Server**, **Asset Request**,
 serta sub-kategori tertentu (Software Installation, Software License Request,

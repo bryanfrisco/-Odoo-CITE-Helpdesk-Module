@@ -5,7 +5,14 @@ Prinsip: **native-first** (Helpdesk, Maintenance, Rating, Portal) + custom ringa
 4 area yang tidak tersedia native: ticket numbering, auto-priority matrix, double
 approval, dan SLA warning 75%/90%.
 
-**Versi:** 17.0.1.4.3.
+**Versi:** 17.0.1.4.4.
+
+> **Wajib untuk approver (IT Administrator & Heidi Lianawaty Lisan):** karena
+> tiap company punya data terpisah (Odoo multi-company standar), akun approver
+> **harus mencentang KETIGA company** di company switcher agar bisa
+> membuka/approve/reject tiket dari company mana pun. Bila hanya sebagian
+> company dicentang, tiket dari company lain tidak akan terlihat sama sekali
+> (bukan bug — perlindungan data multi-company bawaan Odoo).
 
 > **Multi-company:** satu tim CITE melayani 3 company. `company_id` tiket di-override
 > menjadi field biasa (native helpdesk memaksa `related='team_id.company_id'` readonly),

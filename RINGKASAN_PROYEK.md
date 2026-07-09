@@ -188,7 +188,17 @@ helpdesk) bocor/bentrok dengan helpdesk Stargo. Sudah diperbaiki:
   "SLA: multi-company" memblokir saat RSL tidak dicentang (error Administrator),
   dan user tanpa hak Helpdesk (mis. approver L2) terblokir ACL `helpdesk.sla`
   (error Heidi). Aman — hasil gauge hanya persentase agregat, tiket tetap
-  difilter ke company yang dicentang.
+  difilter ke company yang dicentang;
+  **1.4.4** = **fix fairness auto-assign lintas company** — perhitungan beban
+  kerja agen di `_auto_assign` (dipanggil saat Heidi approve L2) kini dihitung
+  `sudo()` lintas SELURUH company, bukan hanya company yang kebetulan
+  dicentang approver saat itu (sebelumnya bisa membuat penugasan tidak adil
+  bila approver hanya mencentang 1 company). Juga dikonfirmasi (bukan bug,
+  perilaku standar multi-company Odoo): approver **wajib mencentang ketiga
+  company** di switcher agar bisa membuka/approve tiket dari company mana pun
+  — didokumentasikan di README. Diverifikasi lokal: approval L1→L2 end-to-end
+  sukses saat ketiga company dicentang, gagal (AccessError, sesuai desain
+  Odoo) saat company tiket tidak dicentang; 16/16 test lulus.
 
 > Diverifikasi end-to-end via HTTP lokal: submit → `/citehelpdesk2/ticket/<id>` (bukan /my),
 > My Tickets memuat tiket & link benar, halaman detail + balas berfungsi, ikon & filter tim benar.

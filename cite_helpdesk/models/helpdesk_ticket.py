@@ -599,8 +599,11 @@ class HelpdeskTicket(models.Model):
             if team and ticket.team_id != team:
                 ticket.team_id = team
             if team and team.member_ids and not ticket.user_id:
-                # Balanced: anggota dengan tiket open paling sedikit.
-                counts = dict(self.env["helpdesk.ticket"]._read_group(
+                # Balanced: anggota dengan tiket open paling sedikit, DIHITUNG
+                # LINTAS SEMUA COMPANY (sudo) — agen shared-service melayani
+                # ketiga company, jadi keadilan beban tidak boleh tergantung
+                # company mana yang kebetulan dicentang approver saat approve.
+                counts = dict(self.env["helpdesk.ticket"].sudo()._read_group(
                     [("user_id", "in", team.member_ids.ids),
                      ("stage_id.is_close", "=", False)],
                     ["user_id"], ["__count"]))

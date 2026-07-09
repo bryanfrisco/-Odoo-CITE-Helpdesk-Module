@@ -5,7 +5,7 @@ Prinsip: **native-first** (Helpdesk, Maintenance, Rating, Portal) + custom ringa
 4 area yang tidak tersedia native: ticket numbering, auto-priority matrix, double
 approval, dan SLA warning 75%/90%.
 
-**Versi:** 17.0.1.4.2.
+**Versi:** 17.0.1.4.3.
 
 > **Multi-company:** satu tim CITE melayani 3 company. `company_id` tiket di-override
 > menjadi field biasa (native helpdesk memaksa `related='team_id.company_id'` readonly),

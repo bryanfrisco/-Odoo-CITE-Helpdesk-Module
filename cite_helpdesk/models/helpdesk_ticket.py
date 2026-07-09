@@ -929,9 +929,13 @@ class HelpdeskTicket(models.Model):
                                          raise_if_not_found=False)
         stats = {"response": {"reached": 0, "failed": 0},
                  "resolution": {"reached": 0, "failed": 0}}
-        # helpdesk.sla.status tak punya record rule company -> filter manual ke
-        # company yang dicentang di switcher agar gauge konsisten dgn KPI dashboard.
-        for sla_status in self.env["helpdesk.sla.status"].search(
+        # Dibaca sebagai sudo: kebijakan SLA ikut company tim (RSL), sehingga
+        # record rule "SLA: multi-company" memblokir pembacaan saat RSL tidak
+        # dicentang di switcher (AccessError di dashboard). Aman — hasilnya
+        # hanya persentase agregat, dan tiket tetap difilter manual ke company
+        # yang dicentang agar gauge konsisten dgn KPI dashboard
+        # (helpdesk.sla.status sendiri tak punya record rule company).
+        for sla_status in self.env["helpdesk.sla.status"].sudo().search(
                 [("ticket_id.cite_ticket", "=", True),
                  ("ticket_id.company_id", "in", self.env.companies.ids),
                  ("ticket_id.create_date", ">=", start)]):

@@ -182,7 +182,13 @@ helpdesk) bocor/bentrok dengan helpdesk Stargo. Sudah diperbaiki:
   domain memicu record rule multi-company `helpdesk.team`; tim ber-company RSL
   "hilang" saat hanya SPR/SMA dicentang sehingga semua tiket CITE ikut lenyap
   dari Tickets & Overview). Terverifikasi lokal lintas kombinasi centang;
-  16/16 test lulus.
+  16/16 test lulus;
+  **1.4.3** = **fix Access Error di dashboard** — gauge SLA Compliance membaca
+  kebijakan SLA (milik company tim/RSL) sebagai `sudo`: sebelumnya record rule
+  "SLA: multi-company" memblokir saat RSL tidak dicentang (error Administrator),
+  dan user tanpa hak Helpdesk (mis. approver L2) terblokir ACL `helpdesk.sla`
+  (error Heidi). Aman — hasil gauge hanya persentase agregat, tiket tetap
+  difilter ke company yang dicentang.
 
 > Diverifikasi end-to-end via HTTP lokal: submit → `/citehelpdesk2/ticket/<id>` (bukan /my),
 > My Tickets memuat tiket & link benar, halaman detail + balas berfungsi, ikon & filter tim benar.

@@ -1,0 +1,34 @@
+@startuml
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam rectangle {
+  BackgroundColor #E8F0FE
+  BorderColor #1A56DB
+}
+title Gambar 2.1 Kerangka Pemikiran Penelitian
+
+rectangle "INPUT" as IN #FFF4E5 {
+  rectangle "Permasalahan:\n- Layanan TI tersebar & manual\n- Tanpa SPOC, prioritas, SLA\n- Tanpa jejak persetujuan\n- Beban kerja tidak merata" as P
+}
+rectangle "LANDASAN TEORI" as TH #E8F0FE {
+  rectangle "ERP & Odoo 17 Enterprise" as t1
+  rectangle "ITSM / Kerangka ITIL" as t2
+  rectangle "Helpdesk, SLA,\nMatriks Prioritas" as t3
+  rectangle "RBAC & Segregation\nof Duty" as t4
+  rectangle "Black Box Testing" as t5
+}
+rectangle "PROSES" as PR #E6F4EA {
+  rectangle "Rancang Bangun Modul Helpdesk\n(R&D - Model Prototype, native-first)" as proc
+}
+rectangle "OUTPUT" as OUT #F3E8FD {
+  rectangle "Sistem layanan TI terpusat (SPOC):\ntiket otomatis, prioritas, SLA,\npersetujuan 2 tingkat, distribusi beban\notomatis, notifikasi tim penanggung\njawab, dashboard" as o
+}
+
+P --> proc
+t1 --> proc
+t2 --> proc
+t3 --> proc
+t4 --> proc
+t5 --> proc
+proc --> o
+@enduml

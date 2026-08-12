@@ -1,0 +1,61 @@
+TUGAS AKHIR — CITE HELPDESK
+Perancangan dan Implementasi Sistem IT Helpdesk dan Manajemen Layanan
+Berbasis Odoo pada Grup Perusahaan Multi-Entitas
+Ahmad Rizqi Sharpei (20230801338) — Teknik Informatika, Universitas Esa Unggul
+============================================================
+
+ISI FOLDER
+------------------------------------------------------------
+1_Laporan/
+   Laporan_TA_CITE_Helpdesk.docx
+   -> Laporan Bab 1-4 + halaman awal (sampul, keaslian, pengesahan,
+      publikasi, kata pengantar, abstrak ID/EN, daftar isi, daftar
+      referensi). Mengikuti struktur template resmi Esa Unggul.
+
+2_Jurnal/
+   Daftar_Jurnal_Referensi.pdf
+   -> Daftar jurnal beranotasi. SEMUA referensi ASLI & terverifikasi
+      (penulis, tahun, volume, DOI). Unduh PDF tiap artikel lewat
+      tautan DOI, lalu simpan di folder ini.
+
+3_Presentasi/
+   Slide_TA_CITE_Helpdesk.pptx
+   -> 15 slide presentasi (rasio 16:9).
+
+============================================================
+YANG PERLU ANDA LAKUKAN SEBELUM DIKUMPULKAN
+------------------------------------------------------------
+LAPORAN (.docx):
+  1. Buka di Microsoft Word.
+  2. Update Daftar Isi: klik area Daftar Isi -> klik kanan ->
+     "Update Field" -> "Update entire table" (atau tekan Ctrl+A lalu F9).
+  3. Nomor halaman: halaman awal (i, ii, ...) idealnya angka romawi,
+     isi bab (1, 2, ...) angka biasa. Word memakai satu penomoran;
+     sesuaikan lewat Section Break bila diminta pembimbing.
+  4. Tambahkan gambar/screenshot pada tempat berlabel "Gambar 4-1",
+     "Gambar 4-2", dst. (tampilan portal, dasbor, form). Caption sudah
+     disiapkan; tinggal sisipkan gambarnya.
+  5. Isi tanggal, tanda tangan, dan nama penguji pada halaman
+     pengesahan sesuai arahan program studi.
+  6. Cek ulang margin/format huruf bila pedoman prodi berbeda
+     (dokumen dibuat: Times New Roman 12, spasi 1,5, margin 4-3-3-3 cm).
+
+JURNAL (PDF):
+  - Buka Daftar_Jurnal_Referensi.pdf, klik tiap tautan DOI, unduh PDF
+    artikelnya, simpan di folder 2_Jurnal/.
+  - Semua referensi dalam daftar SUDAH sinkron dengan yang dikutip di
+    laporan (Daftar Referensi).
+
+PRESENTASI (.pptx):
+  - Tambahkan screenshot sistem pada slide Hasil bila perlu.
+
+============================================================
+CATATAN INTEGRITAS
+------------------------------------------------------------
+- Subjek laporan adalah sistem NYATA (modul cite_helpdesk) — data,
+  fitur, dan hasil pengujian (16/16 test) berasal dari proyek yang
+  benar-benar dibangun.
+- Referensi TIDAK dikarang. Seluruhnya artikel jurnal yang benar-benar
+  terbit; verifikasi & unduh sendiri lewat tautan DOI.
+- Periksa kembali seluruh isi, sesuaikan dengan arahan dosen/pembimbing,
+  dan pastikan Anda memahami isinya untuk keperluan sidang.

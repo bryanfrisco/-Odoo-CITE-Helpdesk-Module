@@ -20,6 +20,19 @@ _CATEGORY_ICONS = {
     "cite_helpdesk.cat_asset_request": "fa-cube",
 }
 
+# xmlid kategori -> grup penanggung jawab (dinotifikasi saat tiket masuk &
+# disetujui penuh). Backfill saat upgrade agar DB lama ikut ter-set.
+_CATEGORY_RESPONSIBLE = {
+    "cite_helpdesk.cat_software": "cite_helpdesk.group_application_team",
+    "cite_helpdesk.cat_hardware": "cite_helpdesk.group_it_support",
+    "cite_helpdesk.cat_network": "cite_helpdesk.group_infrastructure_team",
+    "cite_helpdesk.cat_server": "cite_helpdesk.group_infrastructure_team",
+    "cite_helpdesk.cat_printer": "cite_helpdesk.group_it_support",
+    "cite_helpdesk.cat_cctv": "cite_helpdesk.group_infrastructure_team",
+    "cite_helpdesk.cat_access": "cite_helpdesk.group_it_support",
+    "cite_helpdesk.cat_asset_request": "cite_helpdesk.group_it_support",
+}
+
 
 class HelpdeskTeam(models.Model):
     _inherit = "helpdesk.team"
@@ -48,6 +61,13 @@ class HelpdeskTeam(models.Model):
             # Isi hanya bila kosong/masih ikon default — hormati editan admin.
             if category and (not category.icon or category.icon == "fa-wrench"):
                 category.icon = icon
+        # Tim penanggung jawab per kategori — isi hanya bila belum diset
+        # (hormati editan admin). Dinotifikasi saat tiket masuk & disetujui.
+        for xmlid, group_xmlid in _CATEGORY_RESPONSIBLE.items():
+            category = self.env.ref(xmlid, raise_if_not_found=False)
+            group = self.env.ref(group_xmlid, raise_if_not_found=False)
+            if category and group and not category.responsible_group_id:
+                category.responsible_group_id = group.id
         # Rename stage approval ke nama profesional — hanya bila masih nama lama
         # (jangan timpa bila admin sudah menamai ulang sendiri).
         stage_renames = {

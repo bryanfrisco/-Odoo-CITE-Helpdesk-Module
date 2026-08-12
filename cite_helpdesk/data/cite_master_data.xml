@@ -22,6 +22,7 @@
         <record id="cat_software" model="cite.category">
             <field name="name">Software</field>
             <field name="code">SW</field>
+            <field name="responsible_group_id" ref="group_application_team"/>
             <field name="sequence">10</field>
             <field name="icon">fa-window-restore</field>
             <field name="require_approval" eval="False"/>
@@ -31,6 +32,7 @@
         <record id="cat_hardware" model="cite.category">
             <field name="name">Hardware</field>
             <field name="code">HW</field>
+            <field name="responsible_group_id" ref="group_it_support"/>
             <field name="sequence">20</field>
             <field name="icon">fa-desktop</field>
             <field name="require_approval" eval="False"/>
@@ -40,6 +42,7 @@
         <record id="cat_network" model="cite.category">
             <field name="name">Network</field>
             <field name="code">NW</field>
+            <field name="responsible_group_id" ref="group_infrastructure_team"/>
             <field name="sequence">30</field>
             <field name="icon">fa-wifi</field>
             <field name="require_approval" eval="False"/>
@@ -49,6 +52,7 @@
         <record id="cat_server" model="cite.category">
             <field name="name">Server</field>
             <field name="code">SRV</field>
+            <field name="responsible_group_id" ref="group_infrastructure_team"/>
             <field name="sequence">40</field>
             <field name="icon">fa-server</field>
             <field name="require_approval" eval="True"/>
@@ -58,6 +62,7 @@
         <record id="cat_printer" model="cite.category">
             <field name="name">Printer</field>
             <field name="code">PRN</field>
+            <field name="responsible_group_id" ref="group_it_support"/>
             <field name="sequence">50</field>
             <field name="icon">fa-print</field>
             <field name="require_approval" eval="False"/>
@@ -67,6 +72,7 @@
         <record id="cat_cctv" model="cite.category">
             <field name="name">CCTV</field>
             <field name="code">CCTV</field>
+            <field name="responsible_group_id" ref="group_infrastructure_team"/>
             <field name="sequence">60</field>
             <field name="icon">fa-video-camera</field>
             <field name="require_approval" eval="False"/>
@@ -76,6 +82,7 @@
         <record id="cat_access" model="cite.category">
             <field name="name">Access</field>
             <field name="code">ACC</field>
+            <field name="responsible_group_id" ref="group_it_support"/>
             <field name="sequence">70</field>
             <field name="icon">fa-key</field>
             <field name="require_approval" eval="True"/>
@@ -85,6 +92,7 @@
         <record id="cat_asset_request" model="cite.category">
             <field name="name">Asset Request</field>
             <field name="code">AST</field>
+            <field name="responsible_group_id" ref="group_it_support"/>
             <field name="sequence">80</field>
             <field name="icon">fa-cube</field>
             <field name="require_approval" eval="True"/>

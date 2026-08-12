@@ -295,7 +295,7 @@
                                 </span>
                             </div>
                             <div class="col-12 col-md-6 mb-2">
-                                <small class="text-muted">Level 2 — Heidi Lianawaty Lisan</small><br/>
+                                <small class="text-muted">Level 2 — Department Head</small><br/>
                                 <span t-attf-class="badge #{'text-bg-success' if ticket.heidi_approval_status == 'approved' else 'text-bg-danger' if ticket.heidi_approval_status == 'rejected' else 'text-bg-warning'}">
                                     <t t-out="dict(ticket._fields['heidi_approval_status'].selection).get(ticket.heidi_approval_status)"/>
                                 </span>
@@ -373,7 +373,7 @@
                                 </span>
                             </div>
                             <div class="col-12 col-md-6 mb-2">
-                                <small class="text-muted">Level 2 — Heidi Lianawaty Lisan</small><br/>
+                                <small class="text-muted">Level 2 — Department Head</small><br/>
                                 <span t-attf-class="badge #{'text-bg-success' if ticket.heidi_approval_status == 'approved' else 'text-bg-danger' if ticket.heidi_approval_status == 'rejected' else 'text-bg-warning'}">
                                     <t t-out="dict(ticket._fields['heidi_approval_status'].selection).get(ticket.heidi_approval_status)"/>
                                 </span>

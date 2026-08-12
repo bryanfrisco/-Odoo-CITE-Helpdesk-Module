@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 from datetime import timedelta
 
 import pytz
@@ -44,6 +45,10 @@ STAGE_XMLIDS = {
     "cancelled": "cite_helpdesk.stage_cancelled",
     "rejected": "cite_helpdesk.stage_rejected",
 }
+
+# Format nomor tiket CITE (IT-YYYY-XXXXX) — dipakai saat repair tiket non-CITE
+# yang sempat ter-cap nomor CITE oleh versi <= 17.0.1.5.0.
+_CITE_REF_RE = re.compile(r"^IT-\d{4}-\d{5}$")
 
 # Stage yang hanya boleh dicapai setelah approval penuh (FR-07.3 / 13.3-1).
 APPROVAL_PROTECTED_STAGES = {"assigned", "in_progress", "resolved", "closed"}
@@ -108,9 +113,6 @@ class HelpdeskTicket(models.Model):
     cite_subcategory_id = fields.Many2one(
         "cite.subcategory", string="Sub Category", tracking=True,
         domain="[('category_id', '=', cite_category_id)]")
-    equipment_id = fields.Many2one(
-        "maintenance.equipment", string="Asset", tracking=True,
-        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
 
     # --- Priority engine (FR-05) — plain-language labels for end users ---
     impact = fields.Selection([
@@ -146,7 +148,7 @@ class HelpdeskTicket(models.Model):
         ("not_required", "Not Required"), ("waiting", "Waiting Level 1"),
         ("pending", "Pending"), ("approved", "Approved"),
         ("rejected", "Rejected")],
-        string="Heidi Lianawaty Lisan Approval Status",
+        string="Department Head Approval Status",
         default="not_required", tracking=True, copy=False)
     heidi_approval_date = fields.Datetime(readonly=True, copy=False)
     approval_status = fields.Selection([
@@ -280,6 +282,24 @@ class HelpdeskTicket(models.Model):
             self._send_cite_mail(template_xmlid,
                                  email_values={"email_to": mailbox.email})
 
+    def _notify_responsible_group(self, template_xmlid):
+        """Email anggota tim penanggung jawab kategori tiket.
+
+        Tim ditentukan dari cite_category_id.responsible_group_id (mis. CCTV ->
+        Infrastructure Team). Bila kategori belum diberi tim, jatuh ke IT Support
+        agar tiket tetap terpantau.
+        """
+        fallback = self.env.ref("cite_helpdesk.group_it_support",
+                                raise_if_not_found=False)
+        for ticket in self:
+            group = ticket.cite_category_id.responsible_group_id or fallback
+            if not group:
+                continue
+            emails = ",".join(u.email_formatted for u in group.users if u.email)
+            if emails:
+                ticket._send_cite_mail(template_xmlid,
+                                       email_values={"email_to": emails})
+
     def _schedule_approval_activity(self, group_xmlid, activity_xmlid):
         group = self.env.ref(group_xmlid, raise_if_not_found=False)
         if not group:
@@ -295,23 +315,43 @@ class HelpdeskTicket(models.Model):
     # ------------------------------------------------------------------
 
     @api.model
+    def _cite_default_team_is_cite(self, defaults):
+        """True bila form/aksi yang sedang dipakai membuat tiket tim CITE."""
+        team_id = (defaults.get("team_id")
+                   or self.env.context.get("default_team_id"))
+        if not team_id:
+            return False
+        team = self.env["helpdesk.team"].sudo().browse(int(team_id))
+        return bool(team.exists() and team.cite_team)
+
+    @api.model
     def default_get(self, fields_list):
         defaults = super().default_get(fields_list)
-        # Requester otomatis = user yang sedang login.
+        # Requester otomatis = user yang sedang login — hanya di form tiket CITE.
+        # Form helpdesk lain (mis. Stargo) tidak boleh ikut terisi otomatis.
         if ("partner_id" in fields_list and not defaults.get("partner_id")
-                and not self.env.user._is_public()):
+                and not self.env.user._is_public()
+                and self._cite_default_team_is_cite(defaults)):
             defaults["partner_id"] = self.env.user.partner_id.id
         return defaults
 
     @api.model_create_multi
     def create(self, vals_list):
         tickets = super().create(vals_list)
+        # PAGAR LINTAS-MODUL (wajib): DB ini juga dipakai helpdesk lain (Stargo).
+        # SELURUH efek samping CITE — penomoran IT-YYYY-XXXXX, stage CITE,
+        # approval, email, follower mailbox — hanya boleh jalan untuk tiket tim
+        # CITE. Tanpa pagar ini tiket tim lain ikut ter-cap nomor & stage CITE
+        # (lihat migrations/17.0.1.5.1 untuk perbaikan data lama).
+        cite_tickets = tickets.filtered("cite_ticket")
+        if not cite_tickets:
+            return tickets
         # Mailbox pusat CITE (cite@aspire.id) — menerima tembusan setiap tiket.
         mailbox = self.env.ref("cite_helpdesk.partner_cite_mailbox",
                                raise_if_not_found=False)
         cc_values = ({"email_cc": mailbox.email}
                      if mailbox and mailbox.email else None)
-        for ticket in tickets:
+        for ticket in cite_tickets:
             ticket = ticket.with_context(cite_skip_status_mail=True)
             # Native create menimpa ticket_ref dengan sequence 'helpdesk.ticket'
             # — set ulang ke sequence CITE setelah create.
@@ -319,29 +359,44 @@ class HelpdeskTicket(models.Model):
                 self.env["ir.sequence"].sudo()
                 .next_by_code("cite.helpdesk.ticket") or ticket.ticket_ref)
             if ticket.require_approval:
+                # Butuh approval: L1 (IT Administrator) + mailbox pusat yang
+                # dinotifikasi dulu; tim penanggung jawab menyusul setelah
+                # disetujui penuh (lihat action_heidi_approve).
                 ticket._start_admin_approval()
-            elif not ticket.cite_stage_code:
-                ticket.stage_id = ticket._cite_stage("open").id
+            else:
+                if not ticket.cite_stage_code:
+                    ticket.stage_id = ticket._cite_stage("open").id
+                # Tiket non-approval langsung siap dikerjakan: beri tahu tim
+                # penanggung jawab (mis. CCTV -> Infrastructure Team).
+                ticket._notify_responsible_group(
+                    "cite_helpdesk.mail_tpl_team_new_ticket")
             # Tembusan ke mailbox pusat: CC pada email "Ticket Created" +
             # jadikan follower agar percakapan publik berikutnya juga masuk.
             ticket._send_cite_mail("cite_helpdesk.mail_tpl_ticket_created",
                                    email_values=cc_values)
             if mailbox:
                 ticket.message_subscribe(partner_ids=mailbox.ids)
-        tickets._check_approval_guard()
+        cite_tickets._check_approval_guard()
         return tickets
 
     def write(self, vals):
         self._check_lock(vals)
         res = super().write(vals)
-        self._check_approval_guard()
+        # Pagar lintas-modul: hanya tiket tim CITE yang menjalankan lifecycle
+        # CITE (stage follow-up, email, approval). Dievaluasi SETELAH super()
+        # agar perpindahan team_id pada write ini ikut terhitung.
+        cite_tickets = self.filtered("cite_ticket")
+        if not cite_tickets:
+            return res
+        cite_tickets._check_approval_guard()
         if "stage_id" in vals and not self.env.context.get("cite_stage_followup"):
-            self.with_context(cite_stage_followup=True)._on_stage_changed()
+            cite_tickets.with_context(
+                cite_stage_followup=True)._on_stage_changed()
         if vals.get("user_id"):
-            self._send_cite_mail("cite_helpdesk.mail_tpl_ticket_assigned")
+            cite_tickets._send_cite_mail("cite_helpdesk.mail_tpl_ticket_assigned")
         # Kategori diubah menjadi kategori ber-approval setelah create.
         if "cite_category_id" in vals or "cite_subcategory_id" in vals:
-            for ticket in self:
+            for ticket in cite_tickets:
                 if (ticket.require_approval
                         and ticket.admin_approval_status == "not_required"
                         and not ticket.stage_is_locked):
@@ -349,11 +404,72 @@ class HelpdeskTicket(models.Model):
         return res
 
     def unlink(self):
-        if not self.env.user.has_group("base.group_system"):
+        # Audit trail hanya dipaksakan pada tiket CITE — tiket helpdesk lain
+        # tetap mengikuti aturan modul masing-masing.
+        if (self.filtered("cite_ticket")
+                and not self.env.user.has_group("base.group_system")):
             raise UserError(_(
-                "Tiket tidak boleh dihapus demi audit trail. "
+                "Tiket CITE tidak boleh dihapus demi audit trail. "
                 "Gunakan Cancel atau Archive."))
         return super().unlink()
+
+    # ------------------------------------------------------------------
+    # Repair data lama (dipanggil migrations/17.0.1.5.1/post-migrate.py)
+    # ------------------------------------------------------------------
+
+    @api.model
+    def _cite_repair_foreign_tickets(self):
+        """Bersihkan jejak CITE pada tiket helpdesk NON-CITE.
+
+        Versi <= 17.0.1.5.0 menjalankan logika CITE untuk SEMUA helpdesk.ticket,
+        sehingga tiket tim lain (mis. Stargo) ikut mendapat nomor IT-YYYY-XXXXX,
+        stage CITE, dan follower mailbox CITE. Method ini mengembalikannya:
+
+          1. stage CITE  -> stage pertama milik tim tiket itu sendiri
+          2. nomor IT-*  -> nomor baru dari sequence native ``helpdesk.ticket``
+          3. mailbox CITE dilepas dari follower
+
+        Idempoten (aman dijalankan ulang). Return jumlah tiket yang disentuh.
+        """
+        cite_stage_ids = [stage.id for stage in (
+            self.env.ref(xmlid, raise_if_not_found=False)
+            for xmlid in STAGE_XMLIDS.values()) if stage]
+        Ticket = self.sudo().with_context(active_test=False,
+                                          cite_bypass_lock=True)
+        foreign = Ticket.search([
+            ("cite_ticket", "=", False),
+            "|", ("stage_id", "in", cite_stage_ids),
+                 ("ticket_ref", "=like", "IT-____-_____"),
+        ])
+        if not foreign:
+            return 0
+
+        # Penomoran ulang hanya bila sequence native memang BUKAN berformat
+        # IT-… — kalau helpdesk lain kebetulan memakai prefix sama, nomornya
+        # tidak bisa dibedakan dan lebih aman dibiarkan apa adanya.
+        Sequence = self.env["ir.sequence"].sudo()
+        renumber = not any(
+            (seq.prefix or "").startswith("IT-")
+            for seq in Sequence.search([("code", "=", "helpdesk.ticket")]))
+        Stage = self.env["helpdesk.stage"].sudo()
+
+        for ticket in foreign:
+            if ticket.stage_id.id in cite_stage_ids:
+                target = Stage.search([("team_ids", "in", ticket.team_id.ids)],
+                                      order="sequence, id", limit=1)
+                if target:
+                    ticket.stage_id = target.id
+            if renumber and _CITE_REF_RE.match(ticket.ticket_ref or ""):
+                new_ref = Sequence.with_company(
+                    ticket.company_id).next_by_code("helpdesk.ticket")
+                if new_ref:
+                    ticket.ticket_ref = new_ref
+
+        mailbox = self.env.ref("cite_helpdesk.partner_cite_mailbox",
+                               raise_if_not_found=False)
+        if mailbox:
+            foreign.message_unsubscribe(partner_ids=mailbox.ids)
+        return len(foreign)
 
     # ------------------------------------------------------------------
     # Guards (server-side, anti-bypass — Bab 13.3 & 30.2)
@@ -364,7 +480,8 @@ class HelpdeskTicket(models.Model):
             return
         if not set(vals) - LOCK_ALLOWED_FIELDS:
             return
-        locked = self.filtered("stage_is_locked")
+        # Kunci stage final hanya berlaku untuk tiket CITE.
+        locked = self.filtered(lambda t: t.cite_ticket and t.stage_is_locked)
         if locked:
             raise UserError(_(
                 "Tiket %s berstatus final (Closed/Cancelled/Rejected) dan "
@@ -388,7 +505,7 @@ class HelpdeskTicket(models.Model):
                     and ticket.cite_stage_code in APPROVAL_PROTECTED_STAGES):
                 raise ValidationError(_(
                     "Tiket %s memerlukan persetujuan Administrator dan "
-                    "Heidi Lianawaty Lisan sebelum diproses.",
+                    "Department Head sebelum diproses.",
                     ticket.ticket_ref or ticket.display_name))
 
     # ------------------------------------------------------------------
@@ -426,7 +543,8 @@ class HelpdeskTicket(models.Model):
     # AA-05 — balasan requester saat Waiting User -> kembali In Progress.
     def _message_post_after_hook(self, message, msg_vals):
         res = super()._message_post_after_hook(message, msg_vals)
-        if (self.cite_stage_code == "waiting_user"
+        if (self.cite_ticket
+                and self.cite_stage_code == "waiting_user"
                 and self.partner_id
                 and message.author_id == self.partner_id
                 and msg_vals.get("message_type") in ("comment", "email")):
@@ -519,7 +637,7 @@ class HelpdeskTicket(models.Model):
 
     def action_heidi_approve(self):
         self._check_approver("cite_helpdesk.group_heidi_approver",
-                             _("Heidi Lianawaty Lisan"))
+                             _("Department Head"))
         for ticket in self:
             if ticket.admin_approval_status != "approved":
                 raise ValidationError(_("Approval Level 1 belum disetujui."))
@@ -535,6 +653,10 @@ class HelpdeskTicket(models.Model):
             ticket.activity_feedback(["cite_helpdesk.mail_act_heidi_approval"])
             ticket._send_cite_mail("cite_helpdesk.mail_tpl_heidi_approved")
             ticket._auto_assign()
+            # Disetujui penuh -> beri tahu tim penanggung jawab agar mulai
+            # dikerjakan (mis. CCTV -> Infrastructure Team).
+            ticket._notify_responsible_group(
+                "cite_helpdesk.mail_tpl_team_approved")
 
     def _action_open_reject_wizard(self, level):
         self.ensure_one()
@@ -554,7 +676,7 @@ class HelpdeskTicket(models.Model):
 
     def action_heidi_reject(self):
         self._check_approver("cite_helpdesk.group_heidi_approver",
-                             _("Heidi Lianawaty Lisan"))
+                             _("Department Head"))
         return self._action_open_reject_wizard("heidi")
 
     def _apply_rejection(self, level, reason):
@@ -646,6 +768,7 @@ class HelpdeskTicket(models.Model):
         if not resolved_stage:
             return
         tickets = self.search([
+            ("cite_ticket", "=", True),
             ("stage_id", "=", resolved_stage.id),
             ("resolved_date", "<=", limit),
         ])

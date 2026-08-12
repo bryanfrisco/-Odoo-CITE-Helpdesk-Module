@@ -10,7 +10,7 @@
             <field name="delay_unit">days</field>
         </record>
         <record id="mail_act_heidi_approval" model="mail.activity.type">
-            <field name="name">CITE: Heidi Approval</field>
+            <field name="name">CITE: Department Head Approval</field>
             <field name="summary">Review &amp; approve tiket (Level 2)</field>
             <field name="res_model">helpdesk.ticket</field>
             <field name="category">default</field>

@@ -11,5 +11,4 @@ access_cite_subcategory_internal,cite.subcategory internal read,model_cite_subca
 access_cite_subcategory_portal,cite.subcategory portal read,model_cite_subcategory,base.group_portal,1,0,0,0
 access_cite_subcategory_admin,cite.subcategory it admin,model_cite_subcategory,group_it_administrator,1,1,1,0
 access_cite_subcategory_system,cite.subcategory system,model_cite_subcategory,base.group_system,1,1,1,1
-access_maintenance_equipment_portal,maintenance.equipment portal read,maintenance.model_maintenance_equipment,base.group_portal,1,0,0,0
 access_cite_ticket_reject_wizard,cite.ticket.reject.wizard helpdesk user,model_cite_ticket_reject_wizard,helpdesk.group_helpdesk_user,1,1,1,1

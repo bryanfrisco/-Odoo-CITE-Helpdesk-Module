@@ -1,13 +1,13 @@
 # CITE Helpdesk (`cite_helpdesk`)
 
 Modul Odoo **17.0 Enterprise** — realisasi blueprint *CITE Helpdesk: IT Helpdesk & ITSM*.
-Prinsip: **native-first** (Helpdesk, Maintenance, Rating, Portal) + custom ringan untuk
-4 area yang tidak tersedia native: ticket numbering, auto-priority matrix, double
-approval, dan SLA warning 75%/90%.
+Prinsip: **native-first** (Helpdesk, Rating, Portal) + custom ringan untuk
+area yang tidak tersedia native: ticket numbering, auto-priority matrix, double
+approval, SLA warning 75%/90%, dan notifikasi tim penanggung jawab.
 
-**Versi:** 17.0.1.4.4.
+**Versi:** 17.0.1.5.1.
 
-> **Wajib untuk approver (IT Administrator & Heidi Lianawaty Lisan):** karena
+> **Wajib untuk approver (IT Administrator & Department Head):** karena
 > tiap company punya data terpisah (Odoo multi-company standar), akun approver
 > **harus mencentang KETIGA company** di company switcher agar bisa
 > membuka/approve/reject tiket dari company mana pun. Bila hanya sebagian
@@ -36,10 +36,15 @@ approval, dan SLA warning 75%/90%.
 > lain tidak bocor. Portal CITE memakai namespace `/citehelpdesk2/*` sendiri
 > (bukan `/my/tickets` bawaan) — tiket CITE disembunyikan dari portal helpdesk
 > bawaan dan akses `/my/ticket/<id>` tiket CITE dialihkan ke `/citehelpdesk2/ticket/<id>`.
+> **Sejak 17.0.1.5.1** arah sebaliknya juga dipagari: `create()`, `write()`,
+> `unlink()`, `default_get()`, guard kunci-stage, dan cron auto-close hanya
+> berjalan untuk tiket ber-`cite_ticket=True`. Sebelumnya tiket tim lain ikut
+> mendapat nomor `IT-YYYY-XXXXX`, stage CITE, dan follower mailbox CITE.
+> Data lama dibereskan sekali oleh `migrations/17.0.1.5.1/`.
 
 ## Dependencies
 
-`helpdesk` (Enterprise), `maintenance`, `hr`, `portal`, `website`,
+`helpdesk` (Enterprise), `hr`, `portal`, `website`,
 `website_helpdesk`, `website_helpdesk_knowledge` (menarik `knowledge`).
 Halaman portal `/citehelpdesk2` memakai `website.layout` (theme + Website
 Builder); CITE Helpdesk Team otomatis aktif: Website Form, Help Center
@@ -58,7 +63,7 @@ Knowledge, dan Customer Ratings (CSAT).
    - 15 departemen (CITE, ENGI, MPMA, MEMD, HCGS, CFAT, CPMD, CSUS, MIOP, EXPL,
      QLAB, LEGL, CDRE, GOVREL, SMDE) dibuat otomatis saat install.
    - Isi anggota group (IT Support/Administrator/Manager) dan **tepat satu user**
-     di group *Heidi Approver* (Heidi Lianawaty Lisan).
+     di group *Department Head (Approver L2)*.
    - Ikuti checklist lengkap di bagian *Konfigurasi Pasca-Install* di bawah.
 4. Portal user: `https://stargo.odoo.com/citehelpdesk2`.
 
@@ -68,7 +73,7 @@ Knowledge, dan Customer Ratings (CSAT).
 # Odoo.sh / on-premise — letakkan folder cite_helpdesk di addons path
 odoo-bin -d <db> -i cite_helpdesk
 
-# Dengan demo data (Company B/C, sites, user Heidi, contoh aset):
+# Dengan demo data (Company B/C, sites, user Department Head):
 odoo-bin -d <db> -i cite_helpdesk --without-demo=False
 
 # Unit tests:
@@ -84,15 +89,15 @@ odoo-bin -d <db> -i cite_helpdesk --test-tags /cite_helpdesk --stop-after-init
 |---|---|
 | Ticket numbering | `ir.sequence` `IT-%(year)s-XXXXX`, reset tahunan, global lintas company |
 | Priority matrix | Compute server-side `impact × urgency` (20 kombinasi), readonly semua user |
-| Double approval | L1 group **IT Administrator** → L2 group **Heidi Approver**; guard `write()` anti-bypass; segregation of duty; reject wizard dengan alasan wajib; tiket Rejected terkunci |
+| Double approval | L1 group **IT Administrator** → L2 group **Department Head (Approver L2)**; guard `write()` anti-bypass; segregation of duty; reject wizard dengan alasan wajib; tiket Rejected terkunci |
 | Stages | 10 stage (Open → … → Closed/Cancelled/Rejected) + field `is_close`. `post_init_hook` mengunci CITE Helpdesk Team ke 10 stage ini dan menghapus stage generik + team default bawaan helpdesk bila kosong (non-destruktif: dilewati bila ada tiket) |
 | Departemen | 15 departemen dibuat saat install: CITE, ENGI, MPMA, MEMD, HCGS, CFAT, CPMD, CSUS, MIOP, EXPL, QLAB, LEGL, CDRE, GOVREL, SMDE |
 | SLA | 8 policy native — Response (Critical 1j / High 2j / Medium 4j / Low 4j) & Resolution (Critical 3hari / High 4hari / Medium 5hari / Low 5hari, jam kerja), exclude *Waiting User*; cron warning 75%/90% + breach alert (per 10 menit). Nilai diterapkan ke DB lama via `migrations/17.0.1.2.0/` |
 | Auto close | Cron harian: Resolved + 3 hari tanpa respon requester → Closed |
 | Approval reminder | Cron harian: pending > 24 jam → email reminder approver |
 | Waiting User | Balasan requester (portal/email) otomatis mengembalikan ke In Progress |
-| Asset registry | Extend `maintenance.equipment`: asset_code (unik), brand, site, warranty_end_date, asset_status, riwayat tiket per aset, cron warranty 30 hari |
-| Email | 14 template (ET-01…ET-15; ET-10 memakai notifikasi follower native) + **routing CITE**: tiap tiket baru tembusan ke kontak `cite@aspire.id` (CC + follower, `data/cite_mail_routing.xml`); **approval L1 → cite@aspire.id**, **approval L2 → grup *Heidi Approver* (heidi.lianawaty@aspire.id)** |
+| Notifikasi tim | Tiap kategori punya *Tim Penanggung Jawab* (`responsible_group_id`): tiket non-approval yang masuk → email tim itu (mis. CCTV → Infrastructure Team); tiket ber-approval → tim diberi tahu setelah disetujui penuh. Default CCTV/Network/Server→Infrastructure, Software→Application, sisanya→IT Support (di-backfill via `_cite_post_deploy_sync`) |
+| Email | 16 template (ET-01…ET-17; ET-10 memakai notifikasi follower native; ET-16/17 = notif tim penanggung jawab) + **routing CITE**: tiap tiket baru tembusan ke kontak `cite@aspire.id` (CC + follower, `data/cite_mail_routing.xml`); **approval L1 → cite@aspire.id**, **approval L2 → grup *Department Head (Approver L2)* (heidi.lianawaty@aspire.id)** |
 | Security | 6 group + record rules + access rights; `unlink` tiket hanya System Admin |
 | Portal (namespace `/citehelpdesk2`) | `/citehelpdesk2` (landing website.layout) · `/citehelpdesk2/new` (form: Company mengikuti akun login, dropdown Lokasi, lampiran ≤25MB, label Impact/Urgency bahasa awam) · `/citehelpdesk2/my-tickets` (daftar tiket CITE milik user) · `/citehelpdesk2/ticket/<id>` (detail: info + status approval 2 level + percakapan + **form balas** dengan lampiran) |
 | Dashboard | Menu **Overview** (client action OWL): 6 KPI cards klik-tembus, 3 tabel operasional, donut status, tren 14 hari, top solvers, gauge **SLA Compliance dengan filter periode (Day/Week/Month/Year)**, auto-refresh 60 detik |
@@ -108,7 +113,7 @@ odoo-bin -d <db> -i cite_helpdesk --test-tags /cite_helpdesk --stop-after-init
    *CITE Helpdesk → Master Data → Sites*.
 2. **Anggota group** — isi *Settings → Users & Groups*:
    IT Support / Infrastructure / Application / IT Administrator / IT Manager,
-   dan **tepat satu user** pada *Heidi Approver* (Heidi Lianawaty Lisan).
+   dan **tepat satu user** pada *Department Head (Approver L2)*.
    Tambahkan agen ke **member** CITE Helpdesk Team (untuk balanced assignment).
 3. **Working calendar** — set kalender kerja team (Sen–Jum 08.00–17.00 WIB);
    pertimbangkan kalender 24/7 terpisah untuk Critical bila ada on-call.
@@ -116,8 +121,8 @@ odoo-bin -d <db> -i cite_helpdesk --test-tags /cite_helpdesk --stop-after-init
    Stargo). Konfigurasi **Outgoing Mail (SMTP)** agar email benar-benar terkirim.
    Routing CITE sudah otomatis: tiap tiket baru tembusan ke kontak **`cite@aspire.id`**
    (CC + follower) — ubah alamat cukup lewat kontak "CITE Helpdesk", tanpa coding.
-   Approval L2 menyasar email user di grup *Heidi Approver* → set email user Heidi
-   ke **`heidi.lianawaty@aspire.id`**. (Opsional) agar email masuk ke `cite@aspire.id`
+   Approval L2 menyasar email user di grup *Department Head (Approver L2)* → set
+   email user tsb ke **`heidi.lianawaty@aspire.id`**. (Opsional) agar email masuk ke `cite@aspire.id`
    otomatis jadi tiket: set **Alias Domain** `aspire.id` + arahkan MX-nya ke Odoo.
 5. **Multi-company** — beri user IT `allowed_company_ids` = A, B, C
    (tim IT shared-service grup).
@@ -141,12 +146,18 @@ build Enterprise dan **perlu diverifikasi saat install pertama di staging**:
   DB lama TIDAK diterapkan via `<record>` (flag noupdate di `ir.model.data`).
   Solusi: `<function>` `_cite_post_deploy_sync` (ikon + `cite_team`, tiap upgrade)
   dan migration `migrations/17.0.1.2.0/` (nilai SLA, sekali saat naik versi).
+- **Pagar lintas-modul pada `models/helpdesk_ticket.py`**: seluruh override CRUD
+  memfilter `cite_ticket` lebih dulu, sehingga tiket helpdesk tim lain tidak
+  tersentuh logika CITE. Repair data lama: `helpdesk.ticket
+  ._cite_repair_foreign_tickets()` (idempoten, dipanggil `migrations/17.0.1.5.1/`)
+  — mengembalikan stage ke stage tim masing-masing, menomori ulang dari sequence
+  native `helpdesk.ticket`, dan melepas follower mailbox CITE. Penomoran ulang
+  dilewati bila sequence native ternyata juga berprefix `IT-` (tidak bisa
+  dibedakan). Regresi dijaga `tests/test_foreign_helpdesk.py`.
 - `views/portal_templates.xml` → template `portal_ticket_approval_status`
   meng-inherit `helpdesk.tickets_followup` dengan anchor generik
   (`//t[@t-call='portal.portal_layout']`). Bila build Anda memakai id/struktur
   lain, sesuaikan `inherit_id`/xpath (file terisolasi, mudah disesuaikan).
-- `views/maintenance_views.xml` → xpath `serial_no` & `button_box` pada form
-  Maintenance; sesuaikan bila layout native berbeda.
 - `helpdesk.stage.is_close` ditambahkan oleh modul ini (digunakan guard & cron).
 - Field native yang dipakai dan diasumsikan ada: `sla_fail`, `sla_status_ids`,
   `sla_deadline`, `ticket_ref` (di-overwrite dengan sequence CITE saat create),
@@ -163,20 +174,19 @@ cite_helpdesk/
 ├── data/                          # sequence, team, 10 stages, types, 8 SLA,
 │                                  # master data, cite_post_deploy (<function>),
 │                                  # cite_mail_routing (cite@aspire.id),
-│                                  # activity types, 14 mail tpl, 4 cron
-├── demo/demo_data.xml             # Company B/C + sites + Heidi + contoh aset
+│                                  # activity types, 16 mail tpl, 3 cron
+├── demo/demo_data.xml             # Company B/C + sites + user Department Head
 ├── migrations/17.0.1.2.0/         # post-migrate: terapkan nilai SLA baru
 ├── models/
 │   ├── cite_site.py               # cite.site
 │   ├── cite_category.py           # cite.category + cite.subcategory
 │   ├── helpdesk_team.py           # + cite_team flag + _cite_post_deploy_sync
 │   ├── helpdesk_stage.py          # + is_close
-│   ├── helpdesk_ticket.py         # field, priority, approval, guards, crons, dashboard
-│   └── maintenance_equipment.py   # IT asset fields + warranty cron
+│   └── helpdesk_ticket.py         # field, priority, approval, guards, crons, dashboard
 ├── security/                      # groups, record rules, ACL
 ├── static/src/                    # portal JS + dashboard OWL (JS/XML/SCSS)
 ├── tests/                         # priority matrix, sequence, approval flow
-├── views/                         # ticket views, master data, maintenance,
+├── views/                         # ticket views, master data,
 │                                  # portal templates, menu
 └── wizard/ticket_reject_wizard.py # alasan reject wajib
 ```

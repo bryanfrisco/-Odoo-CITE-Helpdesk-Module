@@ -2,10 +2,16 @@
 <odoo>
 
     <!-- Root -->
+    <!-- PENTING: dibatasi ke grup CITE saja, BUKAN helpdesk.group_helpdesk_user.
+         Grup helpdesk bawaan dimiliki hampir semua karyawan (dipakai Stargo
+         Helpdesk di DB yang sama), sehingga app CITE ikut tampil untuk semua
+         orang. group_it_support cukup mewakili Infrastructure/Application/
+         IT Administrator/IT Manager karena keempatnya mewarisinya (implied_ids).
+         Karyawan biasa tetap bisa lapor lewat portal /citehelpdesk2 (tanpa menu). -->
     <menuitem id="menu_cite_root" name="CITE Helpdesk"
               web_icon="cite_helpdesk,static/description/icon.png"
               sequence="25"
-              groups="helpdesk.group_helpdesk_user,cite_helpdesk.group_heidi_approver"/>
+              groups="cite_helpdesk.group_it_support,cite_helpdesk.group_heidi_approver"/>
 
     <!-- Overview (dashboard realtime — halaman pertama saat membuka app) -->
     <record id="action_cite_dashboard" model="ir.actions.client">
@@ -27,11 +33,6 @@
     <menuitem id="menu_cite_sla_breached" name="SLA Breached"
               parent="menu_cite_tickets" action="action_cite_sla_breached"
               sequence="30"/>
-
-    <!-- Assets -->
-    <menuitem id="menu_cite_assets" name="IT Assets" parent="menu_cite_root"
-              action="action_cite_assets" sequence="20"
-              groups="cite_helpdesk.group_it_support"/>
 
     <!-- Master Data (IT Administrator ke atas) -->
     <menuitem id="menu_cite_master" name="Master Data" parent="menu_cite_root"

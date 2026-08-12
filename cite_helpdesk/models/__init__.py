@@ -5,4 +5,3 @@ from . import hr_department
 from . import helpdesk_team
 from . import helpdesk_stage
 from . import helpdesk_ticket
-from . import maintenance_equipment

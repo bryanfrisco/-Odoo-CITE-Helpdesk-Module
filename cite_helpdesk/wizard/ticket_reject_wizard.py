@@ -9,10 +9,8 @@ class CiteTicketRejectWizard(models.TransientModel):
     ticket_id = fields.Many2one("helpdesk.ticket", required=True,
                                 readonly=True)
     level = fields.Selection([("admin", "Administrator"),
-                            
-                            
-                            ("heidi", "Heidi Lianawaty Lisan")],
-                            required=True, readonly=True)
+                              ("heidi", "Department Head")],
+                             required=True, readonly=True)
     reason = fields.Text(string="Alasan Penolakan", required=True)
 
     def action_confirm(self):

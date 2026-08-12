@@ -1,0 +1,175 @@
+From c5c5ab6b3b58e8793425735949b301d3377934b2 Mon Sep 17 00:00:00 2001
+From: bryanfrisco <bryanfrisco24@gmail.com>
+Date: Wed, 12 Aug 2026 10:06:45 +0700
+Subject: [PATCH] feat(final-invoice): label CIF Price Calculation Limonite
+ ikut Excel 1.20% + baris Ni > 1.20% Bonus
+
+Tab Calculate ore type Limonite disamakan dengan format Excel finance
+(basis Ni 1,20%), tanpa mengubah rumus yang sudah ada:
+
+- relabel: Ni 1.3% FOB -> Ni 1.20% FOB Price, Ni > 1.3% Bonus ->
+  Ni > 1.30% Bonus, Ni < 1.3% Pinalty -> Ni < 1.20% Penalty,
+  Ni < 1% Pinalty -> Ni < 1.00% Penalty, CO Bonus -> Co Bonus,
+  H2O Pinalty -> H2O Penalty, FOB/CIF Amount -> Final FOB Price /
+  Total CIF Price
+- baris baru Ni > 1.20% Bonus (lm_ni_bonus_12) dengan rumus sama seperti
+  tier bonus lain: unit / 0,01 * price, ikut dijumlah ke Final FOB Price
+- nama field lama dipertahankan supaya data invoice Limonite lama tidak
+  perlu dimigrasi
+
+Ore type Saprolite, Saprolite HPM Baru, dan invoice Provisional tidak
+tersentuh. Printout Lim 1.20% menyusul di update terpisah.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ asb_invoice_stargate/models/account_move.py   | 57 +++++++++++++------
+ .../views/account_move_views.xml              | 18 +++++-
+ 2 files changed, 55 insertions(+), 20 deletions(-)
+
+diff --git a/asb_invoice_stargate/models/account_move.py b/asb_invoice_stargate/models/account_move.py
+index c7bd308..5614326 100644
+--- a/asb_invoice_stargate/models/account_move.py
++++ b/asb_invoice_stargate/models/account_move.py
+@@ -209,36 +209,48 @@ class AccountMove(models.Model):
+     )
+ 
+     # Final Limonite
++    # Label mengikuti Excel finance (basis Ni 1,20%). Nama field lama
++    # dipertahankan supaya data invoice Limonite lama tidak perlu dimigrasi:
++    # lm_ni_penalty_13* = penalty di bawah 1,20%, lm_ni_penalty_10* = di bawah 1,00%.
+     lm_ni_fob = fields.Float(
+-        string="Ni 1.3% FOB", compute="_compute_lm_ni_fob", store=True
++        string="Ni 1.20% FOB Price", compute="_compute_lm_ni_fob", store=True
+     )
+-    lm_ni_fob_qty = fields.Float(string="Ni 1.3% FOB Quantity", default=0.0)
+-    lm_ni_fob_price = fields.Float(string="Ni 1.3% FOB Price", default=0.0)
++    lm_ni_fob_qty = fields.Float(string="Ni 1.20% FOB Quantity", default=0.0)
++    lm_ni_fob_price = fields.Float(string="Ni 1.20% FOB Unit Price", default=0.0)
+     lm_ni_bonus = fields.Float(
+-        string="Ni > 1.3% Bonus", compute="_compute_lm_ni_bonus", store=True
++        string="Ni > 1.30% Bonus", compute="_compute_lm_ni_bonus", store=True
+     )
+-    lm_ni_bonus_qty = fields.Float(string="Ni > 1.3% Bonus Quantity")
+-    lm_ni_bonus_price = fields.Float(string="Ni > 1.3% Bonus Price", default=0.0)
++    lm_ni_bonus_qty = fields.Float(string="Ni > 1.30% Bonus Quantity")
++    lm_ni_bonus_price = fields.Float(string="Ni > 1.30% Bonus Price", default=0.0)
++    lm_ni_bonus_12 = fields.Float(
++        string="Ni > 1.20% Bonus", compute="_compute_lm_ni_bonus_12", store=True
++    )
++    lm_ni_bonus_12_qty = fields.Float(string="Ni > 1.20% Bonus Quantity")
++    lm_ni_bonus_12_price = fields.Float(string="Ni > 1.20% Bonus Price", default=0.0)
+     lm_ni_penalty_13 = fields.Float(
+-        string="Ni < 1.3% Pinalty", compute="_compute_lm_ni_penalty_13", store=True
++        string="Ni < 1.20% Penalty", compute="_compute_lm_ni_penalty_13", store=True
++    )
++    lm_ni_penalty_13_qty = fields.Float(string="Ni < 1.20% Penalty Quantity")
++    lm_ni_penalty_13_price = fields.Float(
++        string="Ni < 1.20% Penalty Price", default=0.0
+     )
+-    lm_ni_penalty_13_qty = fields.Float(string="Ni < 1.3% Pinalty Quantity")
+-    lm_ni_penalty_13_price = fields.Float(string="Ni < 1.3% Pinalty Price", default=0.0)
+     lm_ni_penalty_10 = fields.Float(
+-        string="Ni < 1%  Pinalty", compute="_compute_lm_ni_penalty_10", store=True
++        string="Ni < 1.00% Penalty", compute="_compute_lm_ni_penalty_10", store=True
++    )
++    lm_ni_penalty_10_qty = fields.Float(string="Ni < 1.00% Penalty Quantity")
++    lm_ni_penalty_10_price = fields.Float(
++        string="Ni < 1.00% Penalty Price", default=0.0
+     )
+-    lm_ni_penalty_10_qty = fields.Float(string="Ni < 1%  Pinalty Quantity")
+-    lm_ni_penalty_10_price = fields.Float(string="Ni < 1%  Pinalty Price", default=0.0)
+     lm_co_bonus = fields.Float(
+-        string="CO Bonus", compute="_compute_lm_co_bonus", store=True
++        string="Co Bonus", compute="_compute_lm_co_bonus", store=True
+     )
+-    lm_co_bonus_qty = fields.Float(string="CO Bonus Quantity", default=0.0)
+-    lm_co_bonus_price = fields.Float(string="CO Bonus Price", default=0.0)
++    lm_co_bonus_qty = fields.Float(string="Co Bonus Quantity", default=0.0)
++    lm_co_bonus_price = fields.Float(string="Co Bonus Price", default=0.0)
+     lm_h20_penalty = fields.Float(
+-        string="H2O Pinalty", compute="_compute_lm_h20_penalty", store=True
++        string="H2O Penalty", compute="_compute_lm_h20_penalty", store=True
+     )
+-    lm_h20_penalty_qty = fields.Float(string="H2O Pinalty Quantity", default=0.0)
+-    lm_h20_penalty_price = fields.Float(string="H2O Pinalty Price", default=0.0)
++    lm_h20_penalty_qty = fields.Float(string="H2O Penalty Quantity", default=0.0)
++    lm_h20_penalty_price = fields.Float(string="H2O Penalty Price", default=0.0)
+     lm_label_custom = fields.Char()
+     lm_custom = fields.Float(compute="_compute_lm_custom", store=True)
+     lm_custom_qty = fields.Float(default=0.0)
+@@ -504,6 +516,13 @@ class AccountMove(models.Model):
+         for move in self:
+             move.lm_ni_bonus = (move.lm_ni_bonus_qty * 100) * move.lm_ni_bonus_price
+ 
++    @api.depends("lm_ni_bonus_12_qty", "lm_ni_bonus_12_price")
++    def _compute_lm_ni_bonus_12(self):
++        for move in self:
++            move.lm_ni_bonus_12 = (
++                move.lm_ni_bonus_12_qty * 100
++            ) * move.lm_ni_bonus_12_price
++
+     @api.depends("lm_ni_penalty_13_qty", "lm_ni_penalty_13_price")
+     def _compute_lm_ni_penalty_13(self):
+         for move in self:
+@@ -539,6 +558,7 @@ class AccountMove(models.Model):
+         "rounding_fob_method",
+         "lm_ni_fob",
+         "lm_ni_bonus",
++        "lm_ni_bonus_12",
+         "lm_ni_penalty_13",
+         "lm_ni_penalty_10",
+         "lm_co_bonus",
+@@ -553,6 +573,7 @@ class AccountMove(models.Model):
+             move.lm_fob_amount = (
+                 move.lm_ni_fob
+                 +move.lm_ni_bonus
++                +move.lm_ni_bonus_12
+                 +move.lm_ni_penalty_13
+                 +move.lm_ni_penalty_10
+                 +move.lm_co_bonus
+diff --git a/asb_invoice_stargate/views/account_move_views.xml b/asb_invoice_stargate/views/account_move_views.xml
+index 3b5989a..efeed8d 100644
+--- a/asb_invoice_stargate/views/account_move_views.xml
++++ b/asb_invoice_stargate/views/account_move_views.xml
+@@ -168,6 +168,20 @@
+                                         <field name="lm_ni_bonus" nolabel="1"/>
+                                     </td>
+                                 </tr>
++                                <tr>
++                                    <td class="pr-md-8">
++                                        <label for="lm_ni_bonus_12"/>
++                                    </td>
++                                    <td class="px-md-4">
++                                        <field name="lm_ni_bonus_12_qty" nolabel="1"/>
++                                    </td>
++                                    <td class="px-md-4">
++                                        <field name="lm_ni_bonus_12_price" nolabel="1"/>
++                                    </td>
++                                    <td class="px-md-4">
++                                        <field name="lm_ni_bonus_12" nolabel="1"/>
++                                    </td>
++                                </tr>
+                                 <tr>
+                                     <td class="pr-md-8">
+                                         <label for="lm_ni_penalty_13"/>
+@@ -241,7 +255,7 @@
+                                 </tr>
+                                 <tr>
+                                     <td class="pr-md-8" colspan="3">
+-                                        <strong>FOB Amount</strong>
++                                        <strong>Final FOB Price</strong>
+                                     </td>
+                                     <td class="px-md-4">
+                                         <bold>
+@@ -265,7 +279,7 @@
+                                 </tr>
+                                 <tr>
+                                     <td class="pr-md-8" colspan="3">
+-                                        <strong>CIF Amount</strong>
++                                        <strong>Total CIF Price</strong>
+                                     </td>
+                                     <td class="px-md-4">
+                                         <bold>
+-- 
+2.53.0.windows.1
+

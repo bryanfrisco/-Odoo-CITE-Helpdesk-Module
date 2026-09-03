@@ -80,3 +80,25 @@ class TestForeignHelpdeskUntouched(CiteHelpdeskCommon):
         # Kembali ke stage milik tim tiket itu sendiri, bukan stage CITE.
         self.assertIn(self.foreign_team, ticket.stage_id.team_ids)
         self.assertFalse(ticket.cite_stage_code)
+
+    def test_foreign_ticket_company_follows_team(self):
+        """Tiket tim lain tanpa company eksplisit tetap ikut company tim.
+
+        Regresi form website helpdesk bawaan (Stargo): company kosong membuat
+        constraint native _check_partner_id_has_the_same_company menolak
+        submit dengan "The customer cannot belong to a different company
+        than the ticket."
+        """
+        partner = self.env["res.partner"].create({
+            "name": "Requester Stargo",
+            "email": "requester.stargo@example.com",
+            "company_id": self.env.company.id,
+        })
+        ticket = self._create_foreign_ticket(partner_id=partner.id)
+        self.assertTrue(ticket.company_id)
+        self.assertEqual(ticket.company_id, self.foreign_team.company_id)
+
+    def test_cite_ticket_keeps_chosen_company(self):
+        """Company pilihan portal CITE tidak boleh ditimpa company tim."""
+        ticket = self._create_ticket()
+        self.assertEqual(ticket.company_id, self.env.company)

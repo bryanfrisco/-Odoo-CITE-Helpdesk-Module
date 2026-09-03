@@ -5,7 +5,7 @@ Prinsip: **native-first** (Helpdesk, Rating, Portal) + custom ringan untuk
 area yang tidak tersedia native: ticket numbering, auto-priority matrix, double
 approval, SLA warning 75%/90%, dan notifikasi tim penanggung jawab.
 
-**Versi:** 17.0.1.5.1.
+**Versi:** 17.0.1.5.2.
 
 > **Wajib untuk approver (IT Administrator & Department Head):** karena
 > tiap company punya data terpisah (Odoo multi-company standar), akun approver
@@ -14,9 +14,10 @@ approval, SLA warning 75%/90%, dan notifikasi tim penanggung jawab.
 > company dicentang, tiket dari company lain tidak akan terlihat sama sekali
 > (bukan bug — perlindungan data multi-company bawaan Odoo).
 
-> **Multi-company:** satu tim CITE melayani 3 company. `company_id` tiket di-override
-> menjadi field biasa (native helpdesk memaksa `related='team_id.company_id'` readonly),
-> sehingga company yang dipilih di portal benar-benar tersimpan per-tiket; constraint
+> **Multi-company:** satu tim CITE melayani 3 company. `company_id` tiket dilonggarkan
+> jadi computed-editable (native helpdesk memaksa `related='team_id.company_id'` readonly),
+> sehingga company yang dipilih di portal benar-benar tersimpan per-tiket — dan bila
+> tidak diisi tetap jatuh ke company tim seperti native; constraint
 > partner-company native di-relax khusus tim CITE. **Dashboard Overview mengikuti
 > company switcher**: centang 1 company → hanya tiket company itu; centang beberapa →
 > gabungan (record rule native + filter `ticket_id.company_id` pada gauge SLA).
@@ -41,6 +42,12 @@ approval, SLA warning 75%/90%, dan notifikasi tim penanggung jawab.
 > berjalan untuk tiket ber-`cite_ticket=True`. Sebelumnya tiket tim lain ikut
 > mendapat nomor `IT-YYYY-XXXXX`, stage CITE, dan follower mailbox CITE.
 > Data lama dibereskan sekali oleh `migrations/17.0.1.5.1/`.
+> **17.0.1.5.2** menutup sisa dampak lain ke helpdesk bawaan: `company_id`
+> tiket kembali ikut company tim bila tidak diisi (computed-editable,
+> `related=False` eksplisit). Sebelumnya tiket tanpa company ditolak
+> constraint native `_check_partner_id_has_the_same_company` sehingga form
+> website helpdesk Stargo gagal submit; `migrations/17.0.1.5.2/` mengisi
+> company tiket lama yang terlanjur kosong.
 
 ## Dependencies
 

@@ -93,11 +93,17 @@ class HelpdeskTicket(models.Model):
                              readonly=True)
     # Native helpdesk memaksa company_id = company tim (related team_id.company_id,
     # readonly), sehingga SATU tim CITE (shared lintas 3 company) tidak bisa punya
-    # tiket dengan company berbeda. Kita override jadi field biasa yang dipilih
-    # per-tiket (mengikuti pilihan di portal), lepas dari company tim.
+    # tiket dengan company berbeda. Kita longgarkan jadi computed-editable: bila
+    # tidak diisi, tetap ikut company tim persis seperti native (penting untuk
+    # tiket helpdesk lain, mis. Stargo); bila diisi (portal CITE), pilihan itu
+    # yang dipakai.
     company_id = fields.Many2one(
         "res.company", string="Company", index=True, tracking=True,
-        related=False, readonly=False, store=True)
+        # related=False WAJIB: definisi native (related='team_id.company_id')
+        # ikut terwarisi saat field di-redefine, dan dengan readonly=False
+        # penulisan company_id malah menulis balik ke helpdesk.team.
+        related=False, compute="_compute_company_id", store=True,
+        readonly=False, precompute=True)
     site_id = fields.Many2one("cite.site", string="Lokasi", tracking=True)
     # Departemen CITE: hanya 15 kode (cite_department=True), terpisah dari
     # departemen native company. Dipilih manual (wajib di portal).
@@ -194,6 +200,20 @@ class HelpdeskTicket(models.Model):
     # ------------------------------------------------------------------
     # Compute
     # ------------------------------------------------------------------
+
+    @api.depends("team_id")
+    def _compute_company_id(self):
+        """Isi company hanya bila masih kosong — jangan timpa pilihan user.
+
+        Tanpa ini tiket yang dibuat tanpa company (mis. form website helpdesk
+        bawaan/Stargo) lahir dengan company kosong, lalu ditolak constraint
+        native _check_partner_id_has_the_same_company: "The customer cannot
+        belong to a different company than the ticket."
+        """
+        for ticket in self:
+            if not ticket.company_id:
+                ticket.company_id = (ticket.team_id.company_id
+                                     or self.env.company)
 
     @api.depends("impact", "urgency")
     def _compute_priority(self):

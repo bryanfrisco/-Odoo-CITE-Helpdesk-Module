@@ -111,7 +111,6 @@ class HelpdeskTicket(models.Model):
         "hr.department", string="Department", tracking=True,
         domain="[('cite_department', '=', True)]")
 
-    description = fields.Html(default=DEFAULT_DESCRIPTION)
 
     # --- Klasifikasi ---
     cite_category_id = fields.Many2one("cite.category", string="Category",
@@ -134,10 +133,6 @@ class HelpdeskTicket(models.Model):
         ("single_user", "Only I am disrupted"),
         ("request", "Routine request (not urgent)")],
         string="How urgent?", tracking=True)
-    priority = fields.Selection(
-        selection=[("0", "Low"), ("1", "Medium"),
-                   ("2", "High"), ("3", "Critical")],
-        compute="_compute_priority", store=True, readonly=True, tracking=True)
 
     # --- Approval engine (FR-07) ---
     require_approval = fields.Boolean(
@@ -215,12 +210,6 @@ class HelpdeskTicket(models.Model):
                 ticket.company_id = (ticket.team_id.company_id
                                      or self.env.company)
 
-    @api.depends("impact", "urgency")
-    def _compute_priority(self):
-        for ticket in self:
-            ticket.priority = PRIORITY_MATRIX.get(
-                (ticket.impact, ticket.urgency), "0")
-
     @api.depends("cite_category_id.require_approval",
                  "cite_subcategory_id.require_approval")
     def _compute_require_approval(self):
@@ -266,6 +255,31 @@ class HelpdeskTicket(models.Model):
             ref = ticket.date_last_stage_update or ticket.create_date
             ticket.time_in_stage = (_cite_human_duration(now - ref)
                                     if ref else "-")
+
+    # ------------------------------------------------------------------
+    # Priority engine (FR-05) — hanya tiket CITE
+    # ------------------------------------------------------------------
+
+    def _cite_priority_value(self):
+        self.ensure_one()
+        return PRIORITY_MATRIX.get((self.impact, self.urgency), "0")
+
+    def _cite_apply_priority(self):
+        """Paksa priority tiket CITE = hasil matrix impact x urgency.
+
+        Dipakai di create()/write() alih-alih compute pada field: field
+        `priority` milik helpdesk bawaan, dan meng-computed-kannya membuat
+        tiket helpdesk lain (mis. Stargo) ikut kehilangan priority manual.
+        """
+        for ticket in self:
+            wanted = ticket._cite_priority_value()
+            if ticket.priority != wanted:
+                ticket.with_context(cite_priority_sync=True).priority = wanted
+
+    @api.onchange("impact", "urgency")
+    def _onchange_cite_priority(self):
+        if self.cite_ticket and (self.impact or self.urgency):
+            self.priority = self._cite_priority_value()
 
     # ------------------------------------------------------------------
     # Helpers
@@ -347,12 +361,15 @@ class HelpdeskTicket(models.Model):
     @api.model
     def default_get(self, fields_list):
         defaults = super().default_get(fields_list)
-        # Requester otomatis = user yang sedang login — hanya di form tiket CITE.
-        # Form helpdesk lain (mis. Stargo) tidak boleh ikut terisi otomatis.
+        # Prefill hanya untuk form tiket CITE. Form helpdesk lain (mis. Stargo)
+        # tidak boleh ikut terisi otomatis.
+        if not self._cite_default_team_is_cite(defaults):
+            return defaults
         if ("partner_id" in fields_list and not defaults.get("partner_id")
-                and not self.env.user._is_public()
-                and self._cite_default_team_is_cite(defaults)):
+                and not self.env.user._is_public()):
             defaults["partner_id"] = self.env.user.partner_id.id
+        if "description" in fields_list and not defaults.get("description"):
+            defaults["description"] = DEFAULT_DESCRIPTION
         return defaults
 
     @api.model_create_multi
@@ -378,6 +395,7 @@ class HelpdeskTicket(models.Model):
             ticket.ticket_ref = (
                 self.env["ir.sequence"].sudo()
                 .next_by_code("cite.helpdesk.ticket") or ticket.ticket_ref)
+            ticket._cite_apply_priority()
             if ticket.require_approval:
                 # Butuh approval: L1 (IT Administrator) + mailbox pusat yang
                 # dinotifikasi dulu; tim penanggung jawab menyusul setelah
@@ -409,6 +427,11 @@ class HelpdeskTicket(models.Model):
         if not cite_tickets:
             return res
         cite_tickets._check_approval_guard()
+        # FR-05 — priority CITE selalu turunan impact x urgency, termasuk bila
+        # ada yang mencoba menulis priority langsung lewat RPC.
+        if (not self.env.context.get("cite_priority_sync")
+                and {"impact", "urgency", "priority"} & set(vals)):
+            cite_tickets._cite_apply_priority()
         if "stage_id" in vals and not self.env.context.get("cite_stage_followup"):
             cite_tickets.with_context(
                 cite_stage_followup=True)._on_stage_changed()

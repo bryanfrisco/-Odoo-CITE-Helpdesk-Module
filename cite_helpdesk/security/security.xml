@@ -57,12 +57,14 @@
     <!-- ============ Record Rules (Bab 19) ============ -->
     <data noupdate="1">
 
-        <!-- RR-03: Department Head (L2) membaca semua tiket lintas company -->
+        <!-- RR-03: Department Head (L2) membaca semua tiket CITE lintas company.
+             Dibatasi cite_ticket=True — tanpa itu approver CITE ikut bisa
+             membaca seluruh tiket helpdesk lain (mis. Stargo) di DB yang sama. -->
         <record id="rule_ticket_heidi_read_all" model="ir.rule">
             <field name="name">CITE: Department Head read all tickets</field>
             <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
             <field name="groups" eval="[(4, ref('group_heidi_approver'))]"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="domain_force">[('cite_ticket', '=', True)]</field>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="False"/>
             <field name="perm_create" eval="False"/>

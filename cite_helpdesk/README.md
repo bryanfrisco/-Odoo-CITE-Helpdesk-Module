@@ -5,7 +5,7 @@ Prinsip: **native-first** (Helpdesk, Rating, Portal) + custom ringan untuk
 area yang tidak tersedia native: ticket numbering, auto-priority matrix, double
 approval, SLA warning 75%/90%, dan notifikasi tim penanggung jawab.
 
-**Versi:** 17.0.1.5.2.
+**Versi:** 17.0.1.5.3.
 
 > **Wajib untuk approver (IT Administrator & Department Head):** karena
 > tiap company punya data terpisah (Odoo multi-company standar), akun approver
@@ -48,6 +48,13 @@ approval, SLA warning 75%/90%, dan notifikasi tim penanggung jawab.
 > constraint native `_check_partner_id_has_the_same_company` sehingga form
 > website helpdesk Stargo gagal submit; `migrations/17.0.1.5.2/` mengisi
 > company tiket lama yang terlanjur kosong.
+> **17.0.1.5.3** menutup sisa jejak terakhir ke helpdesk bawaan: field `priority`
+> dan default `description` tidak lagi di-override global (priority CITE kini
+> dipaksa lewat `create()`/`write()`, template deskripsi lewat `default_get`
+> khusus tim CITE), blok approval di portal bawaan dipagari `cite_ticket`,
+> record rule RR-03 dipersempit ke `cite_ticket=True` (dulu `[(1,'=',1)]`
+> sehingga approver CITE ikut membaca tiket helpdesk lain), dan `post_init_hook`
+> berhenti menghapus team/stage bawaan helpdesk milik modul lain.
 
 ## Dependencies
 

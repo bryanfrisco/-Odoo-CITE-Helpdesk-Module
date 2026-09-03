@@ -102,3 +102,50 @@ class TestForeignHelpdeskUntouched(CiteHelpdeskCommon):
         """Company pilihan portal CITE tidak boleh ditimpa company tim."""
         ticket = self._create_ticket()
         self.assertEqual(ticket.company_id, self.env.company)
+
+    def test_foreign_ticket_priority_stays_manual(self):
+        """Agen helpdesk lain tetap bisa mengatur priority sendiri."""
+        ticket = self._create_foreign_ticket()
+        ticket.priority = "3"
+        self.assertEqual(ticket.priority, "3")
+        ticket.write({"priority": "1"})
+        self.assertEqual(ticket.priority, "1")
+
+    def test_foreign_form_has_no_cite_description(self):
+        """Form tim lain tidak ikut terisi template deskripsi CITE."""
+        defaults = self.env["helpdesk.ticket"].with_context(
+            default_team_id=self.foreign_team.id).default_get(
+                ["description", "partner_id"])
+        self.assertFalse(defaults.get("description"))
+        self.assertFalse(defaults.get("partner_id"))
+
+    def test_cite_form_keeps_prefill(self):
+        """Form tim CITE tetap mendapat template deskripsi & requester."""
+        defaults = self.env["helpdesk.ticket"].with_context(
+            default_team_id=self.team.id).default_get(
+                ["description", "partner_id"])
+        self.assertTrue(defaults.get("description"))
+        self.assertTrue(defaults.get("partner_id"))
+
+    def test_cite_priority_cannot_be_overridden(self):
+        """Priority tiket CITE tetap turunan impact x urgency (anti-bypass)."""
+        ticket = self._create_ticket(impact="individual", urgency="request")
+        self.assertEqual(ticket.priority, "0")
+        ticket.write({"priority": "3"})
+        self.assertEqual(ticket.priority, "0")
+
+    def test_approver_rule_does_not_widen_foreign_access(self):
+        """RR-03 tidak boleh membuka tiket helpdesk lain yang ditutup native.
+
+        Tim dengan privacy_visibility='invited_internal' hanya terlihat oleh
+        anggotanya menurut record rule native. Approver L2 CITE bukan anggota,
+        jadi tiket tim itu harus tetap tertutup — sebelum 17.0.1.5.3 domain
+        RR-03 [(1,'=',1)] justru membukanya.
+        """
+        self.foreign_team.privacy_visibility = "invited_internal"
+        foreign = self._create_foreign_ticket()
+        cite = self._create_ticket()
+        readable = self.env["helpdesk.ticket"].with_user(
+            self.user_heidi).search([("id", "in", (foreign | cite).ids)])
+        self.assertIn(cite, readable, "tiket CITE tetap terbaca approver L2")
+        self.assertNotIn(foreign, readable)

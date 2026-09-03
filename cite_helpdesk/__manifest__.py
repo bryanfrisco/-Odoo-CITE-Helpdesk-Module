@@ -12,7 +12,7 @@ Department Head), ticket numbering IT-YYYY-XXXXX, SLA warning 75%/90%,
 auto-close, notifikasi tim penanggung jawab, portal self-service
 /citehelpdesk2.
 """,
-    "version": "17.0.1.5.2",
+    "version": "17.0.1.5.3",
     "category": "Services/Helpdesk",
     "author": "CITE",
     "website": "https://stargo.odoo.com/citehelpdesk2",

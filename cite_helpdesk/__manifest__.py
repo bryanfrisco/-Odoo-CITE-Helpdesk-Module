@@ -6,19 +6,19 @@
 CITE Helpdesk — IT Helpdesk & IT Service Management (ITSM)
 ==========================================================
 Implementasi blueprint CITE Helpdesk di atas Odoo 17 Enterprise.
-Native-first: Helpdesk, Maintenance (IT Asset Registry), Portal, Rating.
+Native-first: Helpdesk, SLA, rating, Portal.
 Custom ringan: auto-priority matrix, double approval (IT Administrator +
-Heidi Lianawaty Lisan), ticket numbering IT-YYYY-XXXXX, SLA warning 75%/90%,
-auto-close, portal self-service /citehelpdesk2.
+Department Head), ticket numbering IT-YYYY-XXXXX, SLA warning 75%/90%,
+auto-close, notifikasi tim penanggung jawab, portal self-service
+/citehelpdesk2.
 """,
-    "version": "17.0.1.4.4",
+    "version": "17.0.1.6.0",
     "category": "Services/Helpdesk",
     "author": "CITE",
     "website": "https://stargo.odoo.com/citehelpdesk2",
     "license": "OPL-1",
     "depends": [
         "helpdesk",       # Enterprise — tiket, SLA, rating, portal
-        "maintenance",    # IT Asset Registry
         "hr",             # Department / Employee defaults
         "portal",
         "website",        # FR-02 — portal sebagai website page (theme/builder)
@@ -31,6 +31,8 @@ auto-close, portal self-service /citehelpdesk2.
         "security/ir.model.access.csv",
         # data (urutan penting: team -> stages -> types -> SLA -> master)
         "data/ir_sequence.xml",
+        "data/resource_calendar.xml",
+        "data/cite_root_cause.xml",
         "data/helpdesk_team.xml",
         "data/helpdesk_stage.xml",
         "data/helpdesk_ticket_type.xml",
@@ -46,7 +48,6 @@ auto-close, portal self-service /citehelpdesk2.
         "wizard/ticket_reject_wizard_views.xml",
         "views/helpdesk_ticket_views.xml",
         "views/cite_master_views.xml",
-        "views/maintenance_views.xml",
         "views/portal_templates.xml",
         "views/menu.xml",
     ],

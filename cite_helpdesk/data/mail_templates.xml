@@ -80,7 +80,7 @@
 <div style="font-family: Arial, sans-serif; font-size: 13px;">
 <p>Yth. <t t-out="object.partner_id.name or 'Pengguna'"/>,</p>
 <p>Tiket <b><t t-out="object.ticket_ref"/></b> telah <b>disetujui oleh IT Administrator</b>
-   dan saat ini menunggu approval Level 2 (Heidi Lianawaty Lisan).</p>
+   dan saat ini menunggu approval Level 2 (Department Head).</p>
 <p><a t-attf-href="/my/ticket/{{ object.id }}">Lihat status tiket</a></p>
 </div>
             </field>
@@ -272,6 +272,52 @@
   <tr><td><b>Status</b></td><td>: <t t-out="object.stage_id.name"/></td></tr>
 </table>
 <p><a t-attf-href="/web#id={{ object.id }}&amp;model=helpdesk.ticket&amp;view_type=form">Buka tiket — pertimbangkan eskalasi/reassign</a></p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-16 — New Ticket -> Tim Penanggung Jawab (email_to diisi runtime) -->
+        <record id="mail_tpl_team_new_ticket" model="mail.template">
+            <field name="name">CITE: ET-16 New Ticket → Responsible Team</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">[{{ object.ticket_ref }}] Tiket baru untuk tim Anda</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p>Tiket baru masuk dan menjadi tanggung jawab tim Anda:</p>
+<table style="border-collapse:collapse" cellpadding="6">
+  <tr><td><b>Nomor</b></td><td>: <t t-out="object.ticket_ref"/></td></tr>
+  <tr><td><b>Subject</b></td><td>: <t t-out="object.name"/></td></tr>
+  <tr><td><b>Category</b></td><td>: <t t-out="object.cite_category_id.name or '-'"/> /
+      <t t-out="object.cite_subcategory_id.name or '-'"/></td></tr>
+  <tr><td><b>Priority</b></td><td>: <t t-out="dict(object._fields['priority'].selection).get(object.priority)"/></td></tr>
+  <tr><td><b>Company</b></td><td>: <t t-out="object.company_id.name or '-'"/></td></tr>
+  <tr><td><b>Requester</b></td><td>: <t t-out="object.partner_id.name or '-'"/></td></tr>
+</table>
+<p><a t-attf-href="/web#id={{ object.id }}&amp;model=helpdesk.ticket&amp;view_type=form">Buka &amp; tangani tiket</a></p>
+</div>
+            </field>
+        </record>
+
+        <!-- ET-17 — Fully Approved -> Tim Penanggung Jawab (email_to diisi runtime) -->
+        <record id="mail_tpl_team_approved" model="mail.template">
+            <field name="name">CITE: ET-17 Approved → Responsible Team</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">[{{ object.ticket_ref }}] Disetujui — siap dikerjakan tim Anda</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 13px;">
+<p>Tiket berikut telah <b>disetujui penuh</b> (Administrator + Department Head)
+   dan menjadi tanggung jawab tim Anda:</p>
+<table style="border-collapse:collapse" cellpadding="6">
+  <tr><td><b>Nomor</b></td><td>: <t t-out="object.ticket_ref"/></td></tr>
+  <tr><td><b>Subject</b></td><td>: <t t-out="object.name"/></td></tr>
+  <tr><td><b>Category</b></td><td>: <t t-out="object.cite_category_id.name or '-'"/> /
+      <t t-out="object.cite_subcategory_id.name or '-'"/></td></tr>
+  <tr><td><b>Agen</b></td><td>: <t t-out="object.user_id.name or 'Belum ditugaskan'"/></td></tr>
+  <tr><td><b>Requester</b></td><td>: <t t-out="object.partner_id.name or '-'"/></td></tr>
+</table>
+<p><a t-attf-href="/web#id={{ object.id }}&amp;model=helpdesk.ticket&amp;view_type=form">Buka &amp; kerjakan tiket</a></p>
 </div>
             </field>
         </record>

@@ -17,8 +17,13 @@ class CiteCategory(models.Model):
     require_approval = fields.Boolean(
         string="Require Double Approval", default=False,
         help="Jika aktif: tiket melewati Administrator Approval lalu "
-             "Heidi Lianawaty Lisan Approval sebelum dapat diproses.")
+             "Department Head Approval sebelum dapat diproses.")
     default_team_id = fields.Many2one("helpdesk.team", string="Auto-Assign Team")
+    responsible_group_id = fields.Many2one(
+        "res.groups", string="Tim Penanggung Jawab",
+        help="Grup yang dinotifikasi saat tiket kategori ini masuk dan setelah "
+             "disetujui penuh (mis. CCTV → Infrastructure Team). "
+             "Kosong = jatuh ke IT Support.")
     ticket_type_id = fields.Many2one("helpdesk.ticket.type",
                                      string="Default Ticket Type")
     knowledge_tag = fields.Char(

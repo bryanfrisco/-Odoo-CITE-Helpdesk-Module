@@ -10,11 +10,37 @@
             <field name="delay_unit">days</field>
         </record>
         <record id="mail_act_heidi_approval" model="mail.activity.type">
-            <field name="name">CITE: Heidi Approval</field>
+            <field name="name">CITE: Department Head Approval</field>
             <field name="summary">Review &amp; approve tiket (Level 2)</field>
             <field name="res_model">helpdesk.ticket</field>
             <field name="category">default</field>
             <field name="delay_count">1</field>
+            <field name="delay_unit">days</field>
+        </record>
+        <!-- Notifikasi kerja harian: tampil di panel Activities (ikon jam
+             di systray) sehingga tidak hanya mengandalkan email. -->
+        <record id="mail_act_new_ticket" model="mail.activity.type">
+            <field name="name">CITE: Tiket Baru</field>
+            <field name="summary">Tiket baru masuk untuk tim Anda</field>
+            <field name="res_model">helpdesk.ticket</field>
+            <field name="category">default</field>
+            <field name="delay_count">0</field>
+            <field name="delay_unit">days</field>
+        </record>
+        <record id="mail_act_assigned" model="mail.activity.type">
+            <field name="name">CITE: Tiket Ditugaskan</field>
+            <field name="summary">Kerjakan tiket yang ditugaskan kepada Anda</field>
+            <field name="res_model">helpdesk.ticket</field>
+            <field name="category">default</field>
+            <field name="delay_count">0</field>
+            <field name="delay_unit">days</field>
+        </record>
+        <record id="mail_act_sla_risk" model="mail.activity.type">
+            <field name="name">CITE: SLA Berisiko</field>
+            <field name="summary">SLA hampir/sudah terlampaui</field>
+            <field name="res_model">helpdesk.ticket</field>
+            <field name="category">default</field>
+            <field name="delay_count">0</field>
             <field name="delay_unit">days</field>
         </record>
     </data>

@@ -20,11 +20,11 @@
                             type="object" class="btn-danger"
                             groups="cite_helpdesk.group_it_administrator"
                             invisible="not id or admin_approval_status != 'pending'"/>
-                    <button name="action_heidi_approve" string="✔ Approve (Heidi)"
+                    <button name="action_heidi_approve" string="✔ Approve (Dept Head)"
                             type="object" class="btn-success"
                             groups="cite_helpdesk.group_heidi_approver"
                             invisible="not id or heidi_approval_status != 'pending'"/>
-                    <button name="action_heidi_reject" string="✘ Reject (Heidi)"
+                    <button name="action_heidi_reject" string="✘ Reject (Dept Head)"
                             type="object" class="btn-danger"
                             groups="cite_helpdesk.group_heidi_approver"
                             invisible="not id or heidi_approval_status != 'pending'"/>
@@ -103,7 +103,7 @@
                                     <field name="admin_approver_id"/>
                                     <field name="admin_approval_date"/>
                                 </group>
-                                <group string="Level 2 — Heidi Lianawaty Lisan">
+                                <group string="Level 2 — Department Head">
                                     <field name="heidi_approval_status" widget="badge"
                                            decoration-success="heidi_approval_status == 'approved'"
                                            decoration-danger="heidi_approval_status == 'rejected'"
@@ -119,7 +119,7 @@
                         <page string="Resolution" name="resolution">
                             <group>
                                 <group>
-                                    <field name="root_cause"
+                                    <field name="root_cause_id"
                                            readonly="stage_is_locked"
                                            required="cite_stage_code in ('resolved', 'closed')"/>
                                     <field name="resolved_date"/>
@@ -246,7 +246,6 @@
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="user_id"/>
-                <field name="equipment_id"/>
                 <field name="cite_category_id"/>
 
                 <filter name="my_tickets" string="Tiket Saya (Agen)"
@@ -276,8 +275,7 @@
                     <filter name="g_subcategory" string="Sub Category" context="{'group_by': 'cite_subcategory_id'}"/>
                     <filter name="g_priority" string="Priority" context="{'group_by': 'priority'}"/>
                     <filter name="g_user" string="Assigned User" context="{'group_by': 'user_id'}"/>
-                    <filter name="g_asset" string="Asset" context="{'group_by': 'equipment_id'}"/>
-                    <filter name="g_root" string="Root Cause" context="{'group_by': 'root_cause'}"/>
+                    <filter name="g_root" string="Root Cause" context="{'group_by': 'root_cause_id'}"/>
                     <filter name="g_month" string="Bulan" context="{'group_by': 'create_date:month'}"/>
                 </group>
             </search>

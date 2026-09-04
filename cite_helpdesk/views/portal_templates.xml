@@ -284,7 +284,7 @@
                 </div>
 
                 <!-- Approval status (2 level) -->
-                <div t-if="ticket.approval_status != 'not_required'" class="card mb-3">
+                <div t-if="ticket.cite_ticket and ticket.approval_status != 'not_required'" class="card mb-3">
                     <div class="card-header"><b>Approval Status</b></div>
                     <div class="card-body">
                         <div class="row">
@@ -295,7 +295,7 @@
                                 </span>
                             </div>
                             <div class="col-12 col-md-6 mb-2">
-                                <small class="text-muted">Level 2 — Heidi Lianawaty Lisan</small><br/>
+                                <small class="text-muted">Level 2 — Department Head</small><br/>
                                 <span t-attf-class="badge #{'text-bg-success' if ticket.heidi_approval_status == 'approved' else 'text-bg-danger' if ticket.heidi_approval_status == 'rejected' else 'text-bg-warning'}">
                                     <t t-out="dict(ticket._fields['heidi_approval_status'].selection).get(ticket.heidi_approval_status)"/>
                                 </span>
@@ -360,7 +360,7 @@
     <template id="portal_ticket_approval_status" name="CITE Ticket Approval Status"
               inherit_id="helpdesk.tickets_followup">
         <xpath expr="//t[@t-call='portal.portal_layout']" position="inside">
-            <div t-if="ticket.approval_status != 'not_required'"
+            <div t-if="ticket.cite_ticket and ticket.approval_status != 'not_required'"
                  class="container mt-3 o_cite_portal">
                 <div class="card">
                     <div class="card-header"><b>Approval Status</b></div>
@@ -373,7 +373,7 @@
                                 </span>
                             </div>
                             <div class="col-12 col-md-6 mb-2">
-                                <small class="text-muted">Level 2 — Heidi Lianawaty Lisan</small><br/>
+                                <small class="text-muted">Level 2 — Department Head</small><br/>
                                 <span t-attf-class="badge #{'text-bg-success' if ticket.heidi_approval_status == 'approved' else 'text-bg-danger' if ticket.heidi_approval_status == 'rejected' else 'text-bg-warning'}">
                                     <t t-out="dict(ticket._fields['heidi_approval_status'].selection).get(ticket.heidi_approval_status)"/>
                                 </span>

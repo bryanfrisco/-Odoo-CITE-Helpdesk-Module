@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?><odoo>
+    <record id="asb_invoice_stargate_view_move_form_inherit" model="ir.ui.view">
+        <field name="name">account.move.form.inherit</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@id='header_left_group']" position="inside">
+                <field invisible="move_type not in ['out_invoice', 'out_refund', 'out_receipt'] or not invoice_type_id" name="invoice_type_id" options="{'no_open': True, 'no_create': True}"/>
+                <field invisible="1" name="invoice_type_code"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page invisible="move_type not in ['out_invoice', 'out_refund', 'out_receipt'] or not invoice_type_id" string="Tab Calculate">
+                    <!-- Provisional Group -->
+                    <group invisible="invoice_type_code != 'provisional'" name="provisional_invoice_group">
+                        <group>
+                            <field name="contract_number"/>
+                            <field name="contract_sequence"/>
+                            <field name="shipment_number"/>
+                            <field name="barging_number"/>
+                            <field name="bl_number"/>
+                            <field name="bl_date"/>
+                            <field name="draft_survey_weight"/>
+                        </group>
+                        <group>
+                            <field name="currency_contract_id" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="rate_type"/>
+                            <field name="bi_rate"/>
+                            <field name="bi_rate_date"/>
+                            <field invisible="invoice_type_code != 'provisional'" name="price_unit" readonly="False"/>
+                            <field invisible="(invoice_type_code != 'provisional') or (price_unit == price_unit_bi)" name="price_unit_bi" readonly="False"/>
+                            <field name="vat"/>
+                            <field name="percentage"/>
+                            <field name="provisional_amount"/>
+                        </group>
+                        <group string="Analysis Result">
+                            <field name="minerale_ni"/>
+                            <field name="minerale_co"/>
+                            <label for="minerale_sio" invisible="ore_type != 'limonite'" string="MgO"/>
+                            <label for="minerale_sio" invisible="ore_type != 'saprolite'" string="SiO2/MgO"/>
+                            <field name="minerale_sio" invisible="ore_type not in ['limonite','saprolite']" nolabel="1"/>
+                            <field name="minerale_al2o3"/>
+                            <field name="minerale_h2o"/>
+                            <field name="a_result_opt_ids">
+                                <tree editable="bottom">
+                                    <field name="name"/>
+                                    <field name="value"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </group>
+                    <!-- Final Group -->
+                    <group invisible="invoice_type_code != 'final'" name="final_invoice_group">
+                        <group>
+                            <field name="contract_number"/>
+                            <field name="contract_sequence"/>
+                            <field name="shipment_number"/>
+                            <field name="barging_number"/>
+                            <field name="bl_number"/>
+                            <field name="bl_date"/>
+                            <field invisible="1" name="use_quantity_type"/>
+                            <label for="draft_survey_weight"/>
+                            <div class="oe_inline">
+                                <field name="draft_survey_weight" style="width: 50%"/>
+                                <button class="btn-primary" context="{'default_use_quantity_type': 'survey'}" invisible="use_quantity_type == 'survey'" name="set_quantity_final" string="Set Weight" style="width: 30%;" type="object"/>
+                            </div>
+                            <label for="settlement_weight"/>
+                            <div class="oe_inline">
+                                <field name="settlement_weight" style="width: 50%"/>
+                                <button class="btn-primary" context="{'default_use_quantity_type': 'settlement'}" invisible="use_quantity_type == 'settlement'" name="set_quantity_final" string="Set Weight" style="width: 30%;" type="object"/>
+                            </div>
+                            <field name="ore_type"/>
+                        </group>
+                        <group>
+                            <field name="currency_contract_id" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="rate_type"/>
+                            <field name="bi_rate"/>
+                            <field name="bi_rate_date"/>
+                            <field name="vat"/>
+                            <field invisible="invoice_type_code != 'final'" name="price_unit" readonly="True"/>
+                            <field invisible="(invoice_type_code != 'final') or (price_unit == price_unit_bi)" name="price_unit_bi" readonly="True"/>
+                            <field name="percentage"/>
+                        </group>
+                        <group string="Analysis Result">
+                            <field name="minerale_ni"/>
+                            <field invisible="invoice_type_code != 'final' or ore_type != 'saprolite'" name="minerale_fe"/>
+                            <field invisible="invoice_type_code != 'provisional' and ore_type != 'limonite'" name="minerale_co"/>
+                            <label for="minerale_sio" invisible="ore_type != 'limonite'" string="MgO"/>
+                            <label for="minerale_sio" invisible="ore_type != 'saprolite'" string="SiO2/MgO"/>
+                            <field name="minerale_sio" invisible="ore_type not in ['limonite','saprolite']" nolabel="1"/>
+                            <field name="minerale_h2o"/>
+                            <field name="a_result_opt_ids">
+                                <tree editable="bottom">
+                                    <field name="name"/>
+                                    <field name="value"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </group>
+                    <!-- Final Group: Saprolite CIF Price -->
+                    <group invisible="invoice_type_code != 'final' or ore_type != 'saprolite'" string="CIF Price Calculation">
+                        <group>
+                            <label for="sp_correction_factor"/>
+                            <div class="d-flex" style="width: 15%;">
+                                <field name="sp_correction_factor" nolabel="1"/>
+                                <span class="oe_inline">%</span>
+                            </div>
+                            <field name="sp_hma_nickel"/>
+                            <label for="sp_mc"/>
+                            <div class="d-flex" style="width: 15%;">
+                                <field name="sp_mc" nolabel="1"/>
+                                <span class="oe_inline">%</span>
+                            </div>
+                            <field name="sp_hpm_price"/>
+                            <field name="sp_ni_adjustment"/>
+                            <field name="sp_custom_label" string="Custom Label"/>
+                            <field name="sp_custom_value" string="Custom Value"/>
+                            <field name="sp_fob_amount"/>
+                            <field name="sp_freight_amount"/>
+                            <field name="sp_cif_amount"/>
+                        </group>
+                        <group/>
+                    </group>
+                    <!-- Final Group: Limonite CIF Price -->
+                    <group colspan="2" invisible="invoice_type_code != 'final' or ore_type != 'limonite'" string="CIF Price Calculation">
+                        <table class="table table-sm table-borderless">
+                            <thead>
+                                <tr>
+                                    <th class="pr-md-8">
+                                        <strong>Label</strong>
+                                    </th>
+                                    <th class="px-md-4">
+                                        <strong>Unit</strong>
+                                    </th>
+                                    <th class="px-md-4">
+                                        <strong>USD</strong>
+                                    </th>
+                                    <th class="px-md-4">
+                                        <strong>USD / WMT</strong>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="pr-md-8">
+                                        <label for="lm_ni_fob"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_fob_qty" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_fob_price" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_fob" nolabel="1"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="pr-md-8">
+                                        <label for="lm_ni_bonus"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_bonus_qty" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_bonus_price" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_bonus" nolabel="1"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="pr-md-8">
+                                        <label for="lm_ni_bonus_12"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_bonus_12_qty" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_bonus_12_price" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_bonus_12" nolabel="1"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="pr-md-8">
+                                        <label for="lm_ni_penalty_13"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_penalty_13_qty" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_penalty_13_price" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_penalty_13" nolabel="1"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="pr-md-8">
+                                        <label for="lm_ni_penalty_10"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_penalty_10_qty" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_penalty_10_price" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_ni_penalty_10" nolabel="1"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="pr-md-8">
+                                        <label for="lm_co_bonus"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_co_bonus_qty" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_co_bonus_price" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_co_bonus" nolabel="1"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="pr-md-8">
+                                        <label for="lm_h20_penalty"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_h20_penalty_qty" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_h20_penalty_price" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_h20_penalty" nolabel="1"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="pr-md-8">
+                                        <field name="lm_label_custom" nolabel="1" placeholder="Input Custom Label"/>
+                                        <!-- required="invoice_type_code == 'final' and ore_type == 'limonite'"/-->
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_custom_qty" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_custom_price" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_custom" nolabel="1"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="pr-md-8" colspan="3">
+                                        <strong>Final FOB Price</strong>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <bold>
+                                            <field name="lm_fob_amount" nolabel="1"/>
+                                        </bold>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="pr-md-8">
+                                        <label for="lm_freight_amount"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_freight_amount_qty" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_freight_amount_price" nolabel="1"/>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <field name="lm_freight_amount" nolabel="1"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="pr-md-8" colspan="3">
+                                        <strong>Total CIF Price</strong>
+                                    </td>
+                                    <td class="px-md-4">
+                                        <bold>
+                                            <field name="lm_cif_amount" nolabel="1"/>
+                                        </bold>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </group>
+                    <group string="Assigner Information">
+                        <field name="assigner_id"/>
+                        <field name="assigner_job_title"/>
+                    </group>
+                </page>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/tree" position="inside">
+                <field column_invisible="1" name="is_invoice"/>
+                <field column_invisible="1" name="invoice_type_id"/>
+                <button class="oe_highlight" invisible="not is_invoice or not invoice_type_id" name="recalculate_invoice" string="Re calculate" type="object"/>
+            </xpath>
+            <group name="rounding_group" position="inside">
+                <field name="round_cif" />
+                <field name="rounding_cif" invisible="not round_cif"/>
+                <field name="rounding_cif_method" invisible="not round_cif"/>
+                <field name="round_hpm" />
+                <field name="rounding_hpm" invisible="not round_hpm"/>
+                <field name="rounding_hpm_method" invisible="not round_hpm"/>
+                <field name="round_fob" />
+                <field name="rounding_fob" invisible="not round_fob"/>
+                <field name="rounding_fob_method" invisible="not round_fob"/>
+                <field name="round_freight" />
+                <field name="rounding_freight" invisible="not round_freight"/>
+                <field name="rounding_freight_method" invisible="not round_freight"/>
+                <field name="round_weight" />
+                <field name="rounding_weight" invisible="not round_weight"/>
+                <field name="rounding_weight_method" invisible="not round_weight"/>
+                <field name="round_price_unit" />
+                <field name="rounding_price_unit" invisible="not round_price_unit"/>
+                <field name="rounding_price_unit_method" invisible="not round_price_unit"/>
+            </group>
+        </field>
+    </record>
+</odoo>

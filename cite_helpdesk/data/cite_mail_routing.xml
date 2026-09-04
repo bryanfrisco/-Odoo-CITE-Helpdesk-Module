@@ -20,7 +20,7 @@
             <field name="type">contact</field>
             <field name="comment">Mailbox pusat CITE Helpdesk. Menerima tembusan
                 setiap tiket baru (CC + follower). Notifikasi approval Level 2
-                dikirim terpisah ke anggota grup "Heidi Approver".</field>
+                dikirim terpisah ke anggota grup "Department Head (Approver L2)".</field>
         </record>
 
     </data>

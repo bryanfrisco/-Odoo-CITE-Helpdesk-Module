@@ -56,6 +56,17 @@ class HelpdeskTeam(models.Model):
                             raise_if_not_found=False)
         if team and not team.cite_team:
             team.cite_team = True
+        # Jam kerja SLA Senin-Jumat (akhir pekan tidak dihitung). Diterapkan
+        # bila tim belum punya kalender sendiri atau masih memakai kalender
+        # default company — pilihan kalender kustom admin dihormati.
+        calendar = self.env.ref("cite_helpdesk.resource_calendar_cite",
+                                raise_if_not_found=False)
+        if team and calendar and team.resource_calendar_id != calendar:
+            company_default = (team.company_id.resource_calendar_id
+                               or self.env.company.resource_calendar_id)
+            if (not team.resource_calendar_id
+                    or team.resource_calendar_id == company_default):
+                team.resource_calendar_id = calendar.id
         for xmlid, icon in _CATEGORY_ICONS.items():
             category = self.env.ref(xmlid, raise_if_not_found=False)
             # Isi hanya bila kosong/masih ikon default — hormati editan admin.

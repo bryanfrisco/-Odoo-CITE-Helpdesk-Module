@@ -45,6 +45,9 @@
     <menuitem id="menu_cite_subcategories" name="Sub Categories"
               parent="menu_cite_master" action="action_cite_subcategories"
               sequence="30"/>
+    <menuitem id="menu_cite_root_causes" name="Root Causes"
+              parent="menu_cite_master" action="action_cite_root_causes"
+              sequence="35"/>
     <record id="action_cite_sla_policies" model="ir.actions.act_window">
         <field name="name">SLA Policies</field>
         <field name="res_model">helpdesk.sla</field>

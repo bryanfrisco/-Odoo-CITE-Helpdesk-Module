@@ -149,3 +149,61 @@ class TestForeignHelpdeskUntouched(CiteHelpdeskCommon):
             self.user_heidi).search([("id", "in", (foreign | cite).ids)])
         self.assertIn(cite, readable, "tiket CITE tetap terbaca approver L2")
         self.assertNotIn(foreign, readable)
+
+    def test_cite_activity_on_new_ticket(self):
+        """Tiket CITE baru memunculkan activity, bukan email saja."""
+        ticket = self._create_ticket()
+        act_type = self.env.ref("cite_helpdesk.mail_act_new_ticket")
+        self.assertTrue(
+            ticket.activity_ids.filtered(
+                lambda a: a.activity_type_id == act_type),
+            "activity 'Tiket Baru' harus terjadwal untuk tim penanggung jawab")
+
+    def test_cite_activity_on_assign(self):
+        """Penugasan memunculkan activity untuk agen yang ditunjuk."""
+        ticket = self._create_ticket()
+        ticket.write({"user_id": self.user_agent.id})
+        act_type = self.env.ref("cite_helpdesk.mail_act_assigned")
+        activity = ticket.activity_ids.filtered(
+            lambda a: a.activity_type_id == act_type)
+        self.assertTrue(activity)
+        self.assertEqual(activity.user_id, self.user_agent)
+
+    def test_cite_activity_cleared_when_closed(self):
+        """Activity dibersihkan saat tiket selesai agar tidak menggantung."""
+        ticket = self._create_ticket()
+        ticket.write({"user_id": self.user_agent.id})
+        self.assertTrue(ticket.activity_ids)
+        ticket.write({
+            "root_cause_id": self.env.ref("cite_helpdesk.rc_human_error").id,
+            "resolution_notes": "<p>Selesai.</p>",
+            "stage_id": self.env.ref("cite_helpdesk.stage_resolved").id,
+        })
+        self.assertFalse(ticket.activity_ids)
+
+    def test_foreign_ticket_gets_no_cite_activity(self):
+        """Tiket helpdesk lain tidak ikut mendapat activity CITE."""
+        ticket = self._create_foreign_ticket()
+        cite_types = self.env["mail.activity.type"].browse([
+            self.env.ref("cite_helpdesk.mail_act_new_ticket").id,
+            self.env.ref("cite_helpdesk.mail_act_assigned").id,
+        ])
+        self.assertFalse(
+            ticket.activity_ids.filtered(
+                lambda a: a.activity_type_id in cite_types))
+
+    def test_root_cause_is_master_data(self):
+        """Root Cause bisa ditambah dari UI tanpa ubah kode."""
+        baru = self.env["cite.root.cause"].create({"name": "Kabel Digigit Tikus"})
+        ticket = self._create_ticket()
+        ticket.root_cause_id = baru
+        self.assertEqual(ticket.root_cause_id.name, "Kabel Digigit Tikus")
+        self.assertEqual(len(self.env.ref("cite_helpdesk.rc_unknown")), 1)
+
+    def test_sla_calendar_excludes_weekend(self):
+        """Jam kerja SLA tim CITE hanya Senin-Jumat."""
+        calendar = self.team.resource_calendar_id
+        self.assertTrue(calendar, "tim CITE harus punya jam kerja")
+        days = set(calendar.attendance_ids.mapped("dayofweek"))
+        self.assertEqual(days, {"0", "1", "2", "3", "4"},
+                         "Sabtu (5) dan Minggu (6) tidak boleh jadi jam kerja")

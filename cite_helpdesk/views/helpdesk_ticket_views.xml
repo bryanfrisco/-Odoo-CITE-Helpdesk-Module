@@ -119,7 +119,7 @@
                         <page string="Resolution" name="resolution">
                             <group>
                                 <group>
-                                    <field name="root_cause"
+                                    <field name="root_cause_id"
                                            readonly="stage_is_locked"
                                            required="cite_stage_code in ('resolved', 'closed')"/>
                                     <field name="resolved_date"/>
@@ -275,7 +275,7 @@
                     <filter name="g_subcategory" string="Sub Category" context="{'group_by': 'cite_subcategory_id'}"/>
                     <filter name="g_priority" string="Priority" context="{'group_by': 'priority'}"/>
                     <filter name="g_user" string="Assigned User" context="{'group_by': 'user_id'}"/>
-                    <filter name="g_root" string="Root Cause" context="{'group_by': 'root_cause'}"/>
+                    <filter name="g_root" string="Root Cause" context="{'group_by': 'root_cause_id'}"/>
                     <filter name="g_month" string="Bulan" context="{'group_by': 'create_date:month'}"/>
                 </group>
             </search>

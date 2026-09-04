@@ -10,6 +10,8 @@
                  Settings > Technical > Email > Alias Domains (infra, di luar modul). -->
             <field name="alias_name">cite</field>
             <field name="use_sla" eval="True"/>
+            <!-- Jam kerja SLA: Senin-Jumat, akhir pekan tidak dihitung. -->
+            <field name="resource_calendar_id" ref="resource_calendar_cite"/>
             <field name="assign_method">balanced</field>
             <field name="privacy_visibility">portal</field>
             <field name="use_website_helpdesk_form" eval="True"/>

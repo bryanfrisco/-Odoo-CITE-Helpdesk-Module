@@ -130,4 +130,55 @@
         <field name="view_mode">tree</field>
     </record>
 
+    <!-- ============ cite.root.cause ============ -->
+    <record id="view_cite_root_cause_tree" model="ir.ui.view">
+        <field name="name">cite.root.cause.tree</field>
+        <field name="model">cite.root.cause</field>
+        <field name="arch" type="xml">
+            <tree string="Root Causes" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_cite_root_cause_form" model="ir.ui.view">
+        <field name="name">cite.root.cause.form</field>
+        <field name="model">cite.root.cause</field>
+        <field name="arch" type="xml">
+            <form string="Root Cause">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                        </group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Keterangan">
+                        <field name="description" nolabel="1"
+                               placeholder="Kapan pilihan ini dipakai…"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_cite_root_causes" model="ir.actions.act_window">
+        <field name="name">Root Causes</field>
+        <field name="res_model">cite.root.cause</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tambah root cause</p>
+            <p>Pilihan Root Cause pada tiket diambil dari daftar ini —
+               bisa ditambah atau diubah kapan saja tanpa perlu ubah kode.</p>
+        </field>
+    </record>
+
 </odoo>

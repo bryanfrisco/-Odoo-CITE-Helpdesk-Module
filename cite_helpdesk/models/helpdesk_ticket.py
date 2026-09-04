@@ -159,11 +159,12 @@ class HelpdeskTicket(models.Model):
     rejection_reason = fields.Text(copy=False)
 
     # --- Resolusi & audit (FR-12) ---
-    root_cause = fields.Selection([
-        ("human_error", "Human Error"), ("hardware_failure", "Hardware Failure"),
-        ("software_bug", "Software Bug"), ("config_error", "Configuration Error"),
-        ("network_failure", "Network Failure"), ("power_failure", "Power Failure"),
-        ("vendor_issue", "Vendor Issue"), ("unknown", "Unknown")], tracking=True)
+    # Master data (dulu fields.Selection hard-code) — lihat cite.root.cause.
+    # IT Administrator bisa menambah/mengubah pilihan lewat menu Master Data
+    # tanpa perlu ubah kode Python.
+    root_cause_id = fields.Many2one(
+        "cite.root.cause", string="Root Cause", tracking=True,
+        ondelete="restrict")
     # Html tidak mendukung chatter tracking (Odoo NotImplementedError) —
     # audit cukup via resolved_date/closed_date & perubahan stage yang tracked.
     resolution_notes = fields.Html()
@@ -334,6 +335,65 @@ class HelpdeskTicket(models.Model):
                 ticket._send_cite_mail(template_xmlid,
                                        email_values={"email_to": emails})
 
+    # ------------------------------------------------------------------
+    # Notifikasi in-app (panel Activities) — pendamping email
+    # ------------------------------------------------------------------
+
+    # Activity CITE yang dibersihkan saat tiket selesai/batal, supaya tidak
+    # menumpuk sebagai "Late" di systray.
+    _CITE_ACTIVITY_XMLIDS = (
+        "cite_helpdesk.mail_act_new_ticket",
+        "cite_helpdesk.mail_act_assigned",
+        "cite_helpdesk.mail_act_sla_risk",
+        "cite_helpdesk.mail_act_admin_approval",
+        "cite_helpdesk.mail_act_heidi_approval",
+    )
+
+    def _cite_schedule_activity(self, activity_xmlid, users, summary,
+                                note=None, deadline=None):
+        """Jadwalkan activity untuk tiap user, tanpa duplikat.
+
+        Email tetap dikirim; ini pendampingnya agar notifikasi juga muncul di
+        panel Activities Odoo (ikon jam di systray) dan di daftar tiket.
+        """
+        act_type = self.env.ref(activity_xmlid, raise_if_not_found=False)
+        if not act_type:
+            return
+        deadline = deadline or fields.Date.context_today(self)
+        for ticket in self:
+            for user in users:
+                if not user or not user.active:
+                    continue
+                already = ticket.activity_ids.filtered(
+                    lambda a, t=act_type, u=user: (a.activity_type_id == t
+                                                   and a.user_id == u))
+                if already:
+                    continue
+                ticket.activity_schedule(
+                    activity_xmlid, user_id=user.id, note=note,
+                    date_deadline=deadline,
+                    summary="%s — %s" % (summary, ticket.ticket_ref or ""))
+
+    def _cite_sla_deadline_date(self):
+        self.ensure_one()
+        if self.sla_deadline:
+            return fields.Date.to_date(self.sla_deadline)
+        return fields.Date.context_today(self)
+
+    def _cite_responsible_users(self):
+        """User yang bertanggung jawab atas tiket (untuk activity tim)."""
+        self.ensure_one()
+        fallback = self.env.ref("cite_helpdesk.group_it_support",
+                                raise_if_not_found=False)
+        group = self.cite_category_id.responsible_group_id or fallback
+        return group.users if group else self.env["res.users"]
+
+    def _cite_clear_activities(self):
+        """Bersihkan activity CITE yang masih terbuka (tiket selesai/batal)."""
+        for xmlid in self._CITE_ACTIVITY_XMLIDS:
+            if self.env.ref(xmlid, raise_if_not_found=False):
+                self.activity_unlink([xmlid])
+
     def _schedule_approval_activity(self, group_xmlid, activity_xmlid):
         group = self.env.ref(group_xmlid, raise_if_not_found=False)
         if not group:
@@ -408,6 +468,11 @@ class HelpdeskTicket(models.Model):
                 # penanggung jawab (mis. CCTV -> Infrastructure Team).
                 ticket._notify_responsible_group(
                     "cite_helpdesk.mail_tpl_team_new_ticket")
+                ticket._cite_schedule_activity(
+                    "cite_helpdesk.mail_act_new_ticket",
+                    ticket._cite_responsible_users(),
+                    _("Tiket baru"),
+                    deadline=ticket._cite_sla_deadline_date())
             # Tembusan ke mailbox pusat: CC pada email "Ticket Created" +
             # jadikan follower agar percakapan publik berikutnya juga masuk.
             ticket._send_cite_mail("cite_helpdesk.mail_tpl_ticket_created",
@@ -437,6 +502,11 @@ class HelpdeskTicket(models.Model):
                 cite_stage_followup=True)._on_stage_changed()
         if vals.get("user_id"):
             cite_tickets._send_cite_mail("cite_helpdesk.mail_tpl_ticket_assigned")
+            for ticket in cite_tickets:
+                ticket._cite_schedule_activity(
+                    "cite_helpdesk.mail_act_assigned", ticket.user_id,
+                    _("Tiket ditugaskan"),
+                    deadline=ticket._cite_sla_deadline_date())
         # Kategori diubah menjadi kategori ber-approval setelah create.
         if "cite_category_id" in vals or "cite_subcategory_id" in vals:
             for ticket in cite_tickets:
@@ -559,10 +629,13 @@ class HelpdeskTicket(models.Model):
         now = fields.Datetime.now()
         for ticket in self:
             code = ticket.cite_stage_code
+            if code in ("resolved", "closed", "cancelled", "rejected"):
+                # Jangan tinggalkan activity menggantung di systray.
+                ticket._cite_clear_activities()
             writer = ticket.with_context(cite_bypass_lock=True,
                                          cite_stage_followup=True)
             if code in ("resolved", "closed"):
-                if (not ticket.root_cause
+                if (not ticket.root_cause_id
                         or is_html_empty(ticket.resolution_notes)):
                     raise ValidationError(_(
                         "Root Cause dan Resolution Notes wajib diisi "
@@ -700,6 +773,11 @@ class HelpdeskTicket(models.Model):
             # dikerjakan (mis. CCTV -> Infrastructure Team).
             ticket._notify_responsible_group(
                 "cite_helpdesk.mail_tpl_team_approved")
+            ticket._cite_schedule_activity(
+                "cite_helpdesk.mail_act_new_ticket",
+                ticket._cite_responsible_users(),
+                _("Disetujui — siap dikerjakan"),
+                deadline=ticket._cite_sla_deadline_date())
 
     def _action_open_reject_wizard(self, level):
         self.ensure_one()
@@ -845,6 +923,13 @@ class HelpdeskTicket(models.Model):
                 ticket.sla_breach_sent = True
                 ticket._notify_group("cite_helpdesk.group_it_manager",
                                      "cite_helpdesk.mail_tpl_sla_breach")
+                manager = self.env.ref("cite_helpdesk.group_it_manager",
+                                       raise_if_not_found=False)
+                targets = ticket.user_id | (manager.users if manager
+                                            else self.env["res.users"])
+                ticket._cite_schedule_activity(
+                    "cite_helpdesk.mail_act_sla_risk", targets,
+                    _("SLA BREACHED"))
             for sla_status in ongoing:
                 start = sla_status.create_date
                 total = (sla_status.deadline - start).total_seconds()
@@ -866,11 +951,9 @@ class HelpdeskTicket(models.Model):
                             "cite_helpdesk.mail_tpl_sla_warning_90",
                             email_values={"email_to": ",".join(emails)})
                     if ticket.user_id:
-                        ticket.activity_schedule(
-                            "mail.mail_activity_data_todo",
-                            user_id=ticket.user_id.id,
-                            summary=_("SLA 90%% terpakai — %s",
-                                      ticket.ticket_ref or ""))
+                        ticket._cite_schedule_activity(
+                            "cite_helpdesk.mail_act_sla_risk", ticket.user_id,
+                            _("SLA 90%% terpakai"))
                 elif ratio >= 0.75 and not ticket.sla_warning_75_sent:
                     ticket.sla_warning_75_sent = True
                     if ticket.user_id.email:

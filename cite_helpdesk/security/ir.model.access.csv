@@ -12,3 +12,6 @@ access_cite_subcategory_portal,cite.subcategory portal read,model_cite_subcatego
 access_cite_subcategory_admin,cite.subcategory it admin,model_cite_subcategory,group_it_administrator,1,1,1,0
 access_cite_subcategory_system,cite.subcategory system,model_cite_subcategory,base.group_system,1,1,1,1
 access_cite_ticket_reject_wizard,cite.ticket.reject.wizard helpdesk user,model_cite_ticket_reject_wizard,helpdesk.group_helpdesk_user,1,1,1,1
+access_cite_root_cause_internal,cite.root.cause internal read,model_cite_root_cause,base.group_user,1,0,0,0
+access_cite_root_cause_admin,cite.root.cause it admin,model_cite_root_cause,group_it_administrator,1,1,1,0
+access_cite_root_cause_system,cite.root.cause system,model_cite_root_cause,base.group_system,1,1,1,1

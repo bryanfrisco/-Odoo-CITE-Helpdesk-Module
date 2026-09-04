@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 8 root cause awal (dulu fields.Selection hard-code).
+             Sekarang master data: IT Administrator bebas menambah/mengubah
+             lewat menu Master Data > Root Causes tanpa perlu ubah kode. -->
+        <record id="rc_human_error" model="cite.root.cause">
+            <field name="name">Human Error</field>
+            <field name="code">HUM</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="rc_hardware_failure" model="cite.root.cause">
+            <field name="name">Hardware Failure</field>
+            <field name="code">HW</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="rc_software_bug" model="cite.root.cause">
+            <field name="name">Software Bug</field>
+            <field name="code">SW</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="rc_config_error" model="cite.root.cause">
+            <field name="name">Configuration Error</field>
+            <field name="code">CFG</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="rc_network_failure" model="cite.root.cause">
+            <field name="name">Network Failure</field>
+            <field name="code">NET</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="rc_power_failure" model="cite.root.cause">
+            <field name="name">Power Failure</field>
+            <field name="code">PWR</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="rc_vendor_issue" model="cite.root.cause">
+            <field name="name">Vendor Issue</field>
+            <field name="code">VND</field>
+            <field name="sequence">70</field>
+        </record>
+        <record id="rc_unknown" model="cite.root.cause">
+            <field name="name">Unknown</field>
+            <field name="code">UNK</field>
+            <field name="sequence">80</field>
+        </record>
+    </data>
+</odoo>

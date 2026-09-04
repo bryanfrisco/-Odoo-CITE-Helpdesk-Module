@@ -5,7 +5,7 @@ Prinsip: **native-first** (Helpdesk, Rating, Portal) + custom ringan untuk
 area yang tidak tersedia native: ticket numbering, auto-priority matrix, double
 approval, SLA warning 75%/90%, dan notifikasi tim penanggung jawab.
 
-**Versi:** 17.0.1.5.3.
+**Versi:** 17.0.1.6.0.
 
 > **Wajib untuk approver (IT Administrator & Department Head):** karena
 > tiap company punya data terpisah (Odoo multi-company standar), akun approver
@@ -106,6 +106,7 @@ odoo-bin -d <db> -i cite_helpdesk --test-tags /cite_helpdesk --stop-after-init
 | Double approval | L1 group **IT Administrator** → L2 group **Department Head (Approver L2)**; guard `write()` anti-bypass; segregation of duty; reject wizard dengan alasan wajib; tiket Rejected terkunci |
 | Stages | 10 stage (Open → … → Closed/Cancelled/Rejected) + field `is_close`. `post_init_hook` mengunci CITE Helpdesk Team ke 10 stage ini dan menghapus stage generik + team default bawaan helpdesk bila kosong (non-destruktif: dilewati bila ada tiket) |
 | Departemen | 15 departemen dibuat saat install: CITE, ENGI, MPMA, MEMD, HCGS, CFAT, CPMD, CSUS, MIOP, EXPL, QLAB, LEGL, CDRE, GOVREL, SMDE |
+| Jam kerja SLA | Kalender sendiri **Senin-Jumat 08:00-12:00 & 13:00-17:00** (`resource_calendar_cite`, 8 jam/hari, tanpa company agar lintas 3 company). Sabtu & Minggu tidak dihitung: tiket Jumat sore ber-SLA 4 jam jatuh tempo Senin. Dipasang ke tim CITE dan di-backfill `_cite_post_deploy_sync` (hormati kalender kustom admin) |
 | SLA | 8 policy native — Response (Critical 1j / High 2j / Medium 4j / Low 4j) & Resolution (Critical 3hari / High 4hari / Medium 5hari / Low 5hari, jam kerja), exclude *Waiting User*; cron warning 75%/90% + breach alert (per 10 menit). Nilai diterapkan ke DB lama via `migrations/17.0.1.2.0/` |
 | Auto close | Cron harian: Resolved + 3 hari tanpa respon requester → Closed |
 | Approval reminder | Cron harian: pending > 24 jam → email reminder approver |
@@ -115,6 +116,8 @@ odoo-bin -d <db> -i cite_helpdesk --test-tags /cite_helpdesk --stop-after-init
 | Security | 6 group + record rules + access rights; `unlink` tiket hanya System Admin |
 | Portal (namespace `/citehelpdesk2`) | `/citehelpdesk2` (landing website.layout) · `/citehelpdesk2/new` (form: Company mengikuti akun login, dropdown Lokasi, lampiran ≤25MB, label Impact/Urgency bahasa awam) · `/citehelpdesk2/my-tickets` (daftar tiket CITE milik user) · `/citehelpdesk2/ticket/<id>` (detail: info + status approval 2 level + percakapan + **form balas** dengan lampiran) |
 | Dashboard | Menu **Overview** (client action OWL): 6 KPI cards klik-tembus, 3 tabel operasional, donut status, tren 14 hari, top solvers, gauge **SLA Compliance dengan filter periode (Day/Week/Month/Year)**, auto-refresh 60 detik |
+| Root Cause | **Master data `cite.root.cause`** (dulu `fields.Selection` hard-code): IT Administrator menambah/mengubah/mengarsip pilihan lewat *Master Data > Root Causes* tanpa ubah kode. 8 nilai awal dimigrasi otomatis oleh `migrations/17.0.1.6.0/` |
+| Notifikasi in-app | Selain email, event penting menjadi **activity** sehingga muncul di panel Activities (ikon jam systray) & kolom Activities: tiket baru -> tim penanggung jawab, penugasan -> agen, SLA 90% & breach -> agen + IT Manager, approval L1/L2 -> approver. Deadline activity mengikuti `sla_deadline`; activity dibersihkan otomatis saat tiket Resolved/Closed/Cancelled/Rejected agar tidak menumpuk sebagai *Late* |
 | Master data | 8 category + subcategory + approval matrix via flag (dapat diubah admin tanpa coding), 2 lokasi generik (Head Office / Site, lintas company). Ikon kategori & flag `cite_team` ditegaskan tiap upgrade via `<function>` `_cite_post_deploy_sync` (kebal noupdate) |
 | Portal | Sub Category disembunyikan dari portal (diisi tim IT di backend); lampiran maks 5 file ditampilkan sebagai komentar (preview gambar + link dokumen) |
 | Tests | Priority matrix (20 kombinasi), sequence, approval flow + guard + lock + segregation |
